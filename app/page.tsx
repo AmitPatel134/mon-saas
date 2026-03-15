@@ -61,35 +61,35 @@ export default function HomePage() {
         <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
         <div className="relative max-w-5xl mx-auto">
-          <p className="text-xs font-bold text-fuchsia-200 uppercase tracking-widest mb-6">Automatisation de workflows</p>
+          <p className="text-xs font-bold text-fuchsia-200 uppercase tracking-widest mb-6">Pour les agents immobiliers</p>
           <h1 className="text-[clamp(3rem,8vw,7rem)] font-extrabold leading-none tracking-tight mb-8">
-            Automatise tes<br />workflows,<br />
-            <span className="text-fuchsia-200">vends plus vite</span>
+            L'outil qui fait<br />gagner du temps<br />
+            <span className="text-fuchsia-200">aux agents immo</span>
           </h1>
           <div className="flex items-start justify-between gap-12">
             <p className="text-xl font-medium text-fuchsia-100 max-w-md leading-relaxed">
-              Connecte tous tes outils SaaS et automatise les tâches répétitives. Zéro code, déployé en 5 minutes.
+              Gérez vos mandats, générez vos annonces avec l'IA et suivez vos prospects. Tout en un, sans effort.
             </p>
             <div className="flex flex-col gap-3 items-end shrink-0">
               {!email && (
                 <a href="/login" className="bg-white text-fuchsia-700 font-bold text-sm px-8 py-4 rounded-full hover:bg-fuchsia-50 transition-colors">
-                  Démarrer gratuitement →
+                  Essayer gratuitement →
                 </a>
               )}
               <a href="#features" className="border border-white/30 text-white font-semibold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition-colors">
                 En savoir plus
               </a>
-              {!email && <p className="text-fuchsia-200 text-xs font-medium">Aucune carte bancaire · Gratuit 14 jours</p>}
+              {!email && <p className="text-fuchsia-200 text-xs font-medium">Aucune carte bancaire · 14 jours gratuits</p>}
             </div>
           </div>
 
           {/* STATS */}
           <div className="flex gap-12 mt-20 pt-8 border-t border-white/20">
             {[
-              { value: "3 000+", label: "équipes actives" },
-              { value: "200+", label: "intégrations" },
-              { value: "99.9%", label: "uptime garanti" },
-              { value: "10M+", label: "workflows exécutés" },
+              { value: "500+", label: "agents actifs" },
+              { value: "12 000+", label: "mandats gérés" },
+              { value: "98%", label: "de temps gagné" },
+              { value: "3 portails", label: "SeLoger, LBC, Logic-Immo" },
             ].map(s => (
               <div key={s.label}>
                 <p className="text-4xl font-extrabold">{s.value}</p>
@@ -109,12 +109,12 @@ export default function HomePage() {
           </h2>
           <div className="grid grid-cols-3 gap-5">
             {[
-              { num: "01", title: "Automatisation visuelle", desc: "Éditeur drag-and-drop pour créer des workflows complexes sans une ligne de code." },
-              { num: "02", title: "200+ intégrations", desc: "Connecte Slack, Notion, GitHub, Stripe et tous tes outils en quelques secondes." },
-              { num: "03", title: "Analytics temps réel", desc: "Visualise l'exécution de chaque workflow avec des métriques détaillées." },
-              { num: "04", title: "Gestion des erreurs", desc: "Retry automatique, alertes Slack, et logs détaillés pour chaque échec." },
-              { num: "05", title: "API & Webhooks", desc: "Déclenche n'importe quel workflow via une simple requête HTTP." },
-              { num: "06", title: "Équipes & permissions", desc: "Invite ton équipe avec des rôles granulaires par workspace." },
+              { num: "01", title: "Fiches mandats complètes", desc: "Type, surface, pièces, adresse, prix, statut, photo. Tout centralisé en un endroit." },
+              { num: "02", title: "Génération IA d'annonces", desc: "Générez des annonces optimisées pour SeLoger, Leboncoin et Logic-Immo en 1 clic." },
+              { num: "03", title: "Pipeline prospects", desc: "Suivez chaque contact, ses critères, ses biens visités et son statut en temps réel." },
+              { num: "04", title: "Statuts visuels", desc: "Disponible, sous compromis, vendu — visibles en un coup d'œil sur tous vos mandats." },
+              { num: "05", title: "Emails de relance IA", desc: "Générez des emails de relance personnalisés pour chaque prospect en 1 clic." },
+              { num: "06", title: "Rappels et suivi", desc: "Ne perdez plus une vente. Planifiez des rappels manuels avec date pour chaque prospect." },
             ].map(f => (
               <div key={f.num} className="p-6 rounded-2xl bg-white border border-gray-200 hover:border-fuchsia-300 hover:shadow-sm transition-all group">
                 <p className="text-xs font-bold text-fuchsia-500 mb-4 group-hover:text-fuchsia-600">{f.num}</p>
@@ -138,9 +138,9 @@ export default function HomePage() {
           <h2 className="text-5xl font-extrabold mb-16">Ce qu'ils en disent</h2>
           <div className="grid grid-cols-3 gap-6">
             {[
-              { quote: "Flowly nous a économisé 10h de travail par semaine. Le setup a pris moins d'une heure.", name: "Sophie L.", role: "CTO, Bricko" },
-              { quote: "On a remplacé Zapier avec Flowly. Plus simple, moins cher, et beaucoup plus fiable.", name: "Thomas M.", role: "Founder, Paird" },
-              { quote: "Le support est incroyable. Ils ont répondu en 2h et m'ont aidé à tout configurer.", name: "Alice C.", role: "Head of Ops, Kerno" },
+              { quote: "Flowly m'a fait gagner 5h par semaine. Je génère mes annonces en 30 secondes au lieu de 20 minutes.", name: "Marc D.", role: "Agent immobilier, Paris 15e" },
+              { quote: "J'ai rentré mes 25 mandats en une heure. Depuis, je ne perds plus un prospect.", name: "Sophie L.", role: "Négociatrice, Lyon" },
+              { quote: "Les annonces générées sont meilleures que ce que j'écrivais moi-même. Mes biens se vendent plus vite.", name: "Thomas R.", role: "Agent indépendant, Bordeaux" },
             ].map(t => (
               <div key={t.name} className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-fuchsia-800/60 transition-colors">
                 <div className="w-8 h-1 rounded-full bg-fuchsia-500 mb-4" />
@@ -232,10 +232,10 @@ export default function HomePage() {
         <div className="absolute -bottom-20 right-[10%] w-80 h-80 rounded-full bg-fuchsia-800/40" />
         <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
         <div className="relative">
-          <h2 className="text-6xl font-extrabold mb-6">Prêt à automatiser ?</h2>
-          <p className="text-fuchsia-200 font-medium text-lg mb-10">Rejoins 3 000+ équipes qui utilisent Flowly chaque jour.</p>
+          <h2 className="text-6xl font-extrabold mb-6">Prêt à gagner du temps ?</h2>
+          <p className="text-fuchsia-200 font-medium text-lg mb-10">Rejoins 500+ agents immobiliers qui utilisent Flowly chaque jour.</p>
           <a href={ctaHref} className="inline-block bg-white text-fuchsia-700 font-bold text-base px-10 py-4 rounded-full hover:bg-fuchsia-50 transition-colors">
-            {email ? "Aller sur mon compte →" : "Commencer gratuitement →"}
+            {email ? "Accéder à mes outils →" : "Commencer gratuitement →"}
           </a>
           {!email && <p className="text-fuchsia-300 font-medium text-xs mt-4">Aucune carte bancaire · Annulation à tout moment</p>}
         </div>
