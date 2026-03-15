@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { stripe } from "@/lib/stripe"
 
 export async function POST(request: Request) {
