@@ -13,7 +13,18 @@ interface Mandat {
   pieces: number
   prix: number
   statut: Statut
-  photo?: string
+  etage?: number
+  exposition?: string
+  chauffage?: string
+  dpe?: string
+  parking: boolean
+  cave: boolean
+  balcon: boolean
+  ascenseur: boolean
+  etat?: string
+  charges?: number
+  anneeConstruction?: number
+  description?: string
 }
 
 const statutConfig: Record<Statut, { label: string; classes: string }> = {
@@ -23,16 +34,32 @@ const statutConfig: Record<Statut, { label: string; classes: string }> = {
 }
 
 const DEMO: Mandat[] = [
-  { id: "1", type: "Appartement", adresse: "12 rue de la Paix", ville: "Paris 75002", surface: 65, pieces: 3, prix: 580000, statut: "disponible" },
-  { id: "2", type: "Maison", adresse: "8 allée des Roses", ville: "Lyon 69006", surface: 120, pieces: 5, prix: 450000, statut: "sous-compromis" },
-  { id: "3", type: "Studio", adresse: "3 place Bellecour", ville: "Lyon 69002", surface: 28, pieces: 1, prix: 145000, statut: "vendu" },
+  { id: "1", type: "Appartement", adresse: "12 rue de la Paix", ville: "Paris 75002", surface: 65, pieces: 3, prix: 580000, statut: "disponible", etage: 4, exposition: "Sud", chauffage: "Collectif gaz", dpe: "C", parking: false, cave: true, balcon: true, ascenseur: true, etat: "Bon état", charges: 320, anneeConstruction: 1975, description: "Appartement lumineux avec parquet ancien, double séjour, cuisine équipée, vue dégagée." },
+  { id: "2", type: "Maison", adresse: "8 allée des Roses", ville: "Lyon 69006", surface: 120, pieces: 5, prix: 450000, statut: "sous-compromis", exposition: "Sud-Ouest", chauffage: "Pompe à chaleur", dpe: "B", parking: true, cave: false, balcon: true, ascenseur: false, etat: "Très bon état", anneeConstruction: 2005, description: "Maison avec jardin de 400m², garage double, terrasse couverte, quartier résidentiel calme." },
+  { id: "3", type: "Studio", adresse: "3 place Bellecour", ville: "Lyon 69002", surface: 28, pieces: 1, prix: 145000, statut: "vendu", etage: 2, exposition: "Est", chauffage: "Électrique", dpe: "D", parking: false, cave: false, balcon: false, ascenseur: false, etat: "À rénover", charges: 80, anneeConstruction: 1960, description: "" },
 ]
 
-const EMPTY: Mandat = { id: "", type: "Appartement", adresse: "", ville: "", surface: 0, pieces: 0, prix: 0, statut: "disponible" }
+const EMPTY: Mandat = {
+  id: "", type: "Appartement", adresse: "", ville: "", surface: 0, pieces: 0, prix: 0, statut: "disponible",
+  parking: false, cave: false, balcon: false, ascenseur: false,
+}
+
+const LS_KEY = "cleo_mandats"
+
+function loadMandats(): Mandat[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY)
+    return raw ? JSON.parse(raw) : DEMO
+  } catch { return DEMO }
+}
+
+function saveMandats(mandats: Mandat[]) {
+  localStorage.setItem(LS_KEY, JSON.stringify(mandats))
+}
 
 export default function MandatsPage() {
   const [ready, setReady] = useState(false)
-  const [mandats, setMandats] = useState<Mandat[]>(DEMO)
+  const [mandats, setMandats] = useState<Mandat[]>([])
   const [filtre, setFiltre] = useState<Statut | "tous">("tous")
   const [search, setSearch] = useState("")
   const [showForm, setShowForm] = useState(false)
@@ -41,6 +68,7 @@ export default function MandatsPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
+      setMandats(loadMandats())
       setReady(true)
     })
   }, [])
@@ -55,18 +83,29 @@ export default function MandatsPage() {
 
   function handleSave() {
     if (!form.adresse || !form.ville) return
+    let updated: Mandat[]
     if (form.id) {
-      setMandats(ms => ms.map(m => m.id === form.id ? form : m))
+      updated = mandats.map(m => m.id === form.id ? form : m)
     } else {
-      setMandats(ms => [...ms, { ...form, id: Date.now().toString() }])
+      updated = [...mandats, { ...form, id: Date.now().toString() }]
     }
+    setMandats(updated)
+    saveMandats(updated)
     setShowForm(false)
     setForm(EMPTY)
   }
 
   function handleDelete(id: string) {
-    setMandats(ms => ms.filter(m => m.id !== id))
+    const updated = mandats.filter(m => m.id !== id)
+    setMandats(updated)
+    saveMandats(updated)
   }
+
+  const f = (field: keyof Mandat) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const val = e.target.type === "number" ? Number(e.target.value) : e.target.value
+    setForm(prev => ({ ...prev, [field]: val }))
+  }
+  const fBool = (field: keyof Mandat) => () => setForm(prev => ({ ...prev, [field]: !prev[field] }))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -101,15 +140,15 @@ export default function MandatsPage() {
             onChange={e => setSearch(e.target.value)}
             className="flex-1 min-w-48 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 transition-colors"
           />
-          {(["tous", "disponible", "sous-compromis", "vendu"] as const).map(f => (
+          {(["tous", "disponible", "sous-compromis", "vendu"] as const).map(fi => (
             <button
-              key={f}
-              onClick={() => setFiltre(f)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${filtre === f ? "bg-gray-900 text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-gray-400"}`}
+              key={fi}
+              onClick={() => setFiltre(fi)}
+              className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${filtre === fi ? "bg-gray-900 text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-gray-400"}`}
             >
-              {f === "tous" ? "Tous" : statutConfig[f]?.label ?? f}
+              {fi === "tous" ? "Tous" : statutConfig[fi]?.label ?? fi}
               <span className="ml-2 text-xs opacity-60">
-                {f === "tous" ? mandats.length : mandats.filter(m => m.statut === f).length}
+                {fi === "tous" ? mandats.length : mandats.filter(m => m.statut === fi).length}
               </span>
             </button>
           ))}
@@ -125,32 +164,36 @@ export default function MandatsPage() {
           <div className="flex flex-col gap-3">
             {filtered.map(m => (
               <div key={m.id} className="bg-white rounded-2xl border border-gray-200 p-5 flex items-center gap-5 hover:border-fuchsia-200 transition-colors group">
-                {/* Photo placeholder */}
                 <div className="w-20 h-20 rounded-xl bg-gray-100 shrink-0 flex items-center justify-center text-gray-300">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 3l9 6.75V21H3V9.75z" />
                   </svg>
                 </div>
-                {/* Infos */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${statutConfig[m.statut].classes}`}>
                       {statutConfig[m.statut].label}
                     </span>
                     <span className="text-xs text-gray-400 font-medium">{m.type}</span>
+                    {m.dpe && <span className="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">DPE {m.dpe}</span>}
                   </div>
                   <p className="font-bold text-gray-900 truncate">{m.adresse}</p>
                   <p className="text-sm text-gray-500 font-medium">{m.ville}</p>
-                  <div className="flex gap-4 mt-2 text-xs text-gray-400 font-semibold">
+                  <div className="flex gap-4 mt-2 text-xs text-gray-400 font-semibold flex-wrap">
                     <span>{m.surface} m²</span>
-                    <span>{m.pieces} pièces</span>
+                    <span>{m.pieces} pièce{m.pieces > 1 ? "s" : ""}</span>
+                    {m.etage !== undefined && m.etage > 0 && <span>Étage {m.etage}</span>}
+                    {m.exposition && <span>{m.exposition}</span>}
+                    {m.parking && <span>Parking</span>}
+                    {m.balcon && <span>Balcon</span>}
+                    {m.cave && <span>Cave</span>}
+                    {m.ascenseur && <span>Ascenseur</span>}
                   </div>
                 </div>
-                {/* Prix */}
                 <div className="text-right shrink-0">
                   <p className="text-xl font-extrabold text-gray-900">{m.prix.toLocaleString("fr-FR")} €</p>
+                  {m.charges && <p className="text-xs text-gray-400 font-medium mt-1">{m.charges} €/mois de charges</p>}
                 </div>
-                {/* Actions */}
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                   <button
                     onClick={() => { setForm(m); setShowForm(true) }}
@@ -177,86 +220,142 @@ export default function MandatsPage() {
 
       {/* MODAL FORM */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-xl">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-xl my-8">
             <h2 className="text-xl font-extrabold text-gray-900 mb-6">
               {form.id ? "Modifier le mandat" : "Nouveau mandat"}
             </h2>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
+
+              {/* Ligne 1 — type + statut */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Type</label>
-                  <select
-                    value={form.type}
-                    onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400"
-                  >
-                    {["Appartement", "Maison", "Studio", "Local commercial", "Terrain"].map(t => (
-                      <option key={t}>{t}</option>
-                    ))}
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Type de bien</label>
+                  <select value={form.type} onChange={f("type")} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400">
+                    {["Appartement", "Maison", "Studio", "Local commercial", "Terrain"].map(t => <option key={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Statut</label>
-                  <select
-                    value={form.statut}
-                    onChange={e => setForm(f => ({ ...f, statut: e.target.value as Statut }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400"
-                  >
+                  <select value={form.statut} onChange={e => setForm(prev => ({ ...prev, statut: e.target.value as Statut }))} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400">
                     <option value="disponible">Disponible</option>
                     <option value="sous-compromis">Sous compromis</option>
                     <option value="vendu">Vendu</option>
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Adresse</label>
-                <input
-                  value={form.adresse}
-                  onChange={e => setForm(f => ({ ...f, adresse: e.target.value }))}
-                  placeholder="12 rue de la Paix"
-                  className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400"
-                />
+
+              {/* Adresse */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Adresse</label>
+                  <input value={form.adresse} onChange={f("adresse")} placeholder="12 rue de la Paix" className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Ville / Code postal</label>
+                  <input value={form.ville} onChange={f("ville")} placeholder="Paris 75002" className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400" />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Ville</label>
-                <input
-                  value={form.ville}
-                  onChange={e => setForm(f => ({ ...f, ville: e.target.value }))}
-                  placeholder="Paris 75002"
-                  className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400"
-                />
-              </div>
+
+              {/* Surface, pièces, prix */}
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Surface (m²)</label>
-                  <input
-                    type="number"
-                    value={form.surface || ""}
-                    onChange={e => setForm(f => ({ ...f, surface: Number(e.target.value) }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400"
-                  />
+                  <input type="number" value={form.surface || ""} onChange={f("surface")} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Pièces</label>
-                  <input
-                    type="number"
-                    value={form.pieces || ""}
-                    onChange={e => setForm(f => ({ ...f, pieces: Number(e.target.value) }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400"
-                  />
+                  <input type="number" value={form.pieces || ""} onChange={f("pieces")} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Prix (€)</label>
-                  <input
-                    type="number"
-                    value={form.prix || ""}
-                    onChange={e => setForm(f => ({ ...f, prix: Number(e.target.value) }))}
-                    className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400"
-                  />
+                  <input type="number" value={form.prix || ""} onChange={f("prix")} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400" />
                 </div>
               </div>
+
+              {/* Étage, année, charges */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Étage</label>
+                  <input type="number" value={form.etage ?? ""} onChange={f("etage")} placeholder="0 = RDC" className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Année construction</label>
+                  <input type="number" value={form.anneeConstruction ?? ""} onChange={f("anneeConstruction")} placeholder="1990" className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Charges (€/mois)</label>
+                  <input type="number" value={form.charges ?? ""} onChange={f("charges")} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400" />
+                </div>
+              </div>
+
+              {/* Exposition, chauffage, DPE, état */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Exposition</label>
+                  <select value={form.exposition ?? ""} onChange={f("exposition")} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400">
+                    <option value="">Non renseigné</option>
+                    {["Nord", "Sud", "Est", "Ouest", "Nord-Est", "Nord-Ouest", "Sud-Est", "Sud-Ouest"].map(e => <option key={e}>{e}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Chauffage</label>
+                  <select value={form.chauffage ?? ""} onChange={f("chauffage")} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400">
+                    <option value="">Non renseigné</option>
+                    {["Collectif gaz", "Individuel gaz", "Électrique", "Pompe à chaleur", "Fioul", "Poêle à bois", "Autre"].map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">DPE</label>
+                  <select value={form.dpe ?? ""} onChange={f("dpe")} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400">
+                    <option value="">Non renseigné</option>
+                    {["A", "B", "C", "D", "E", "F", "G"].map(d => <option key={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">État général</label>
+                  <select value={form.etat ?? ""} onChange={f("etat")} className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400">
+                    <option value="">Non renseigné</option>
+                    {["Neuf / VEFA", "Très bon état", "Bon état", "À rafraîchir", "À rénover"].map(e => <option key={e}>{e}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Options booléennes */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2.5">Équipements & prestations</label>
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    ["parking", "Parking / Garage"],
+                    ["cave", "Cave"],
+                    ["balcon", "Balcon / Terrasse"],
+                    ["ascenseur", "Ascenseur"],
+                  ] as [keyof Mandat, string][]).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={fBool(key)}
+                      className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-colors ${form[key] ? "bg-fuchsia-600 text-white border-fuchsia-600" : "bg-white text-gray-500 border-gray-200 hover:border-fuchsia-300"}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Description libre */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Description / Notes complémentaires</label>
+                <textarea
+                  value={form.description ?? ""}
+                  onChange={f("description")}
+                  rows={3}
+                  placeholder="Points forts, travaux récents, environnement, vue, prestations particulières..."
+                  className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400 resize-none"
+                />
+              </div>
             </div>
+
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => { setShowForm(false); setForm(EMPTY) }}

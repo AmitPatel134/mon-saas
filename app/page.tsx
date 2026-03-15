@@ -29,7 +29,13 @@ export default function HomePage() {
       {/* NAVBAR */}
       <nav className="flex items-center justify-between px-10 py-5 border-b border-gray-200 bg-white sticky top-0 z-50">
         <a href={email ? "/dashboard" : "/"} className="text-lg font-extrabold tracking-tight text-gray-900">Cléo</a>
-        <div className="flex gap-8 text-sm font-semibold text-gray-500">
+        <div className="flex items-center gap-6 text-sm font-semibold text-gray-500">
+          {email && (
+            <a href="/app" className="bg-gray-950 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
+              Outil IA
+            </a>
+          )}
           <a href="#features" className="hover:text-gray-900 transition-colors">Fonctionnalités</a>
           <a href="#pricing" className="hover:text-gray-900 transition-colors">Tarifs</a>
           <a href="/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</a>
@@ -37,11 +43,7 @@ export default function HomePage() {
         <div className="flex items-center gap-3">
           {email && (
             <>
-              <a href="/app" className="bg-gray-950 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
-                Outil IA
-              </a>
-              <button onClick={handleLogout} className="text-gray-500 hover:text-gray-900 font-semibold text-sm transition-colors">
+              <button onClick={handleLogout} className="text-sm font-bold text-gray-600 px-4 py-2 rounded-full border border-gray-200 hover:border-gray-400 hover:text-gray-900 transition-colors">
                 Déconnexion
               </button>
             </>
@@ -265,8 +267,8 @@ export default function HomePage() {
       <footer className="bg-gray-950 text-gray-500 px-10 py-8 flex items-center justify-between">
         <span className="text-white font-extrabold">Cléo</span>
         <div className="flex gap-8 text-sm font-semibold">
-          <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
-          <a href="#" className="hover:text-white transition-colors">Conditions</a>
+          <a href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</a>
+          <a href="/conditions" className="hover:text-white transition-colors">Conditions</a>
           <a href="/support" className="hover:text-white transition-colors">Contact</a>
         </div>
         <span className="text-xs font-medium">© 2026 Cléo</span>

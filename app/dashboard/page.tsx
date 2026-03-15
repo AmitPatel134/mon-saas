@@ -59,15 +59,17 @@ export default function DashboardPage() {
       {/* NAVBAR */}
       <nav className="bg-white border-b border-gray-200 px-10 py-4 flex items-center justify-between">
         <a href="/" className="text-gray-900 font-extrabold text-lg tracking-tight">Cléo</a>
-        <a href="/app" className="bg-gray-950 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
-          Outil IA
-        </a>
-        <div className="flex items-center gap-4">
-          <span className={`text-xs font-bold px-3 py-1 rounded-full ${plan === "pro" ? "bg-fuchsia-600 text-white" : "bg-gray-100 text-gray-600"}`}>
-            {plan === "pro" ? "Pro" : "Free"}
-          </span>
-          <button onClick={handleLogout} className="text-gray-500 hover:text-gray-900 font-semibold text-sm transition-colors">
+
+        {/* Centre */}
+        <div className="flex items-center gap-6 text-sm font-semibold text-gray-500">
+          <a href="/pricing" className="hover:text-gray-900 transition-colors">Tarifs</a>
+          <a href="/" className="hover:text-gray-900 transition-colors">Accueil</a>
+          <a href="/support" className="hover:text-gray-900 transition-colors">Support</a>
+        </div>
+
+        {/* Droite */}
+        <div className="flex items-center gap-3">
+          <button onClick={handleLogout} className="text-sm font-bold text-gray-600 px-4 py-2 rounded-full border border-gray-200 hover:border-gray-400 hover:text-gray-900 transition-colors">
             Déconnexion
           </button>
         </div>
@@ -80,6 +82,22 @@ export default function DashboardPage() {
           <h1 className="text-4xl font-extrabold text-gray-900">Mon espace</h1>
           <p className="text-gray-500 font-medium mt-1 text-sm">{email}</p>
         </div>
+
+        {/* ACCÈS OUTIL */}
+        <a href="/app" className="relative overflow-hidden flex items-center justify-between p-8 rounded-3xl bg-gray-950 text-white mb-6 group hover:bg-gray-900 transition-colors">
+          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-fuchsia-900/40" />
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(232,121,249,0.07) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+          <div className="relative z-10">
+            <div className="w-2 h-2 rounded-full bg-fuchsia-500 mb-3 animate-pulse" />
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Outil IA</p>
+            <p className="text-2xl font-extrabold">Accéder à l'outil →</p>
+          </div>
+          <div className="relative z-10 w-14 h-14 rounded-2xl bg-fuchsia-600 flex items-center justify-center group-hover:bg-fuchsia-500 transition-colors shrink-0">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+        </a>
 
         {/* PLAN CARD */}
         <div className={`relative overflow-hidden p-8 rounded-3xl mb-6 border ${plan === "pro" ? "bg-fuchsia-700 text-white border-fuchsia-700" : "bg-white border-gray-200"}`}>
@@ -135,38 +153,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ACCÈS OUTIL */}
-        <a href="/app" className="relative overflow-hidden flex items-center justify-between p-8 rounded-3xl bg-gray-950 text-white mb-6 group hover:bg-gray-900 transition-colors">
-          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-fuchsia-900/40" />
-          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(232,121,249,0.07) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-          <div className="relative z-10">
-            <div className="w-2 h-2 rounded-full bg-fuchsia-500 mb-3 animate-pulse" />
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Outil IA</p>
-            <p className="text-2xl font-extrabold">Accéder à l'outil →</p>
-          </div>
-          <div className="relative z-10 w-14 h-14 rounded-2xl bg-fuchsia-600 flex items-center justify-center group-hover:bg-fuchsia-500 transition-colors shrink-0">
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-        </a>
-
-        {/* QUICK LINKS */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { href: "/pricing", title: "Tarifs", desc: "Voir les plans disponibles" },
-            { href: "/", title: "Accueil", desc: "Retour à la landing page" },
-          ].map(link => (
-            <a key={link.href} href={link.href} className="p-5 bg-white rounded-2xl border border-gray-200 hover:border-fuchsia-300 transition-colors">
-              <p className="text-sm font-bold text-gray-900 mb-1">{link.title}</p>
-              <p className="text-xs text-gray-500 font-medium">{link.desc}</p>
-            </a>
-          ))}
-          <a href="/support" className="p-5 bg-white rounded-2xl border border-gray-200 hover:border-fuchsia-300 transition-colors">
-            <p className="text-sm font-bold text-gray-900 mb-1">Support</p>
-            <p className="text-xs text-gray-500 font-medium">Contacter l'équipe</p>
-          </a>
-        </div>
 
       </div>
     </div>

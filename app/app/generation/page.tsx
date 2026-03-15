@@ -3,63 +3,95 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
 const portails = ["SeLoger", "Leboncoin", "Logic-Immo"]
+const LS_KEY = "cleo_mandats"
 
-const mandatsDemo = [
-  { id: "1", label: "Appartement — 12 rue de la Paix, Paris 75002", surface: 65, pieces: 3, prix: 580000, type: "Appartement", adresse: "12 rue de la Paix, Paris 75002" },
-  { id: "2", label: "Maison — 8 allée des Roses, Lyon 69006", surface: 120, pieces: 5, prix: 450000, type: "Maison", adresse: "8 allée des Roses, Lyon 69006" },
-  { id: "3", label: "Studio — 3 place Bellecour, Lyon 69002", surface: 28, pieces: 1, prix: 145000, type: "Studio", adresse: "3 place Bellecour, Lyon 69002" },
-]
+interface Mandat {
+  id: string
+  type: string
+  adresse: string
+  ville: string
+  surface: number
+  pieces: number
+  prix: number
+  statut: string
+  etage?: number
+  exposition?: string
+  chauffage?: string
+  dpe?: string
+  parking: boolean
+  cave: boolean
+  balcon: boolean
+  ascenseur: boolean
+  etat?: string
+  charges?: number
+  anneeConstruction?: number
+  description?: string
+}
 
 type HistoriqueItem = { portail: string; texte: string; date: string; type: "annonce" | "email" }
 
-function genererAnnonce(mandat: typeof mandatsDemo[0], portail: string): string {
-  const templates: Record<string, string> = {
-    SeLoger: `🏠 ${mandat.type} ${mandat.surface}m² — ${mandat.pieces} pièce${mandat.pieces > 1 ? "s" : ""}\n\n📍 ${mandat.adresse}\n\nBien rare sur le marché ! Découvrez ce magnifique ${mandat.type.toLowerCase()} de ${mandat.surface}m² idéalement situé. Composé de ${mandat.pieces} pièce${mandat.pieces > 1 ? "s" : ""} lumineuses, il saura séduire les amateurs d'espaces bien agencés.\n\n✅ Surface habitable : ${mandat.surface} m²\n✅ Nombre de pièces : ${mandat.pieces}\n✅ Exposition optimale\n✅ Charges réduites\n\n💰 Prix : ${mandat.prix.toLocaleString("fr-FR")} €\n\nContactez-nous pour organiser une visite. Disponibilité immédiate.`,
-    Leboncoin: `${mandat.type} ${mandat.pieces} pièces ${mandat.surface}m² - ${mandat.prix.toLocaleString("fr-FR")}€\n\nSitué à ${mandat.adresse}, ce ${mandat.type.toLowerCase()} de ${mandat.surface}m² dispose de ${mandat.pieces} pièce${mandat.pieces > 1 ? "s" : ""}.\n\nCaractéristiques :\n- Surface : ${mandat.surface} m²\n- Pièces : ${mandat.pieces}\n- Prix : ${mandat.prix.toLocaleString("fr-FR")} €\n\nBien entretenu, idéal pour habitation principale ou investissement locatif. Visitez sans attendre !\n\nContact : disponible sur annonce.`,
-    "Logic-Immo": `Réf. FL${mandat.id}${Date.now().toString().slice(-4)} | ${mandat.type.toUpperCase()} ${mandat.surface}M² | ${mandat.pieces} PIÈCES\n\nLocalisation : ${mandat.adresse}\nPrix de vente : ${mandat.prix.toLocaleString("fr-FR")} €\n\nDescription :\nNous vous proposons en exclusivité ce ${mandat.type.toLowerCase()} de ${mandat.surface} m² offrant ${mandat.pieces} pièce${mandat.pieces > 1 ? "s" : ""} au calme. Prestation de qualité, environnement agréable.\n\nHonoraires d'agence inclus dans le prix affiché.\n\nPour tout renseignement ou visite, contactez notre agence.`,
-  }
-  return templates[portail] ?? ""
-}
+const DEMO_MANDATS: Mandat[] = [
+  { id: "1", type: "Appartement", adresse: "12 rue de la Paix", ville: "Paris 75002", surface: 65, pieces: 3, prix: 580000, statut: "disponible", etage: 4, exposition: "Sud", chauffage: "Collectif gaz", dpe: "C", parking: false, cave: true, balcon: true, ascenseur: true, etat: "Bon état", charges: 320, anneeConstruction: 1975, description: "Appartement lumineux avec parquet ancien, double séjour, cuisine équipée, vue dégagée." },
+  { id: "2", type: "Maison", adresse: "8 allée des Roses", ville: "Lyon 69006", surface: 120, pieces: 5, prix: 450000, statut: "sous-compromis", exposition: "Sud-Ouest", chauffage: "Pompe à chaleur", dpe: "B", parking: true, cave: false, balcon: true, ascenseur: false, etat: "Très bon état", anneeConstruction: 2005, description: "Maison avec jardin de 400m², garage double, terrasse couverte, quartier résidentiel calme." },
+  { id: "3", type: "Studio", adresse: "3 place Bellecour", ville: "Lyon 69002", surface: 28, pieces: 1, prix: 145000, statut: "vendu", etage: 2, exposition: "Est", chauffage: "Électrique", dpe: "D", parking: false, cave: false, balcon: false, ascenseur: false, etat: "À rénover", charges: 80, anneeConstruction: 1960, description: "" },
+]
 
-function genererEmail(mandat: typeof mandatsDemo[0]): string {
-  return `Objet : Votre recherche — Un bien correspond à vos critères\n\nBonjour,\n\nJ'espère que vous allez bien. Je me permets de vous recontacter car un bien vient de correspondre parfaitement à votre projet.\n\nIl s'agit d'un ${mandat.type.toLowerCase()} de ${mandat.surface}m² situé ${mandat.adresse}, proposé à ${mandat.prix.toLocaleString("fr-FR")} €.\n\nAvec ${mandat.pieces} pièce${mandat.pieces > 1 ? "s" : ""}, ce bien coche de nombreuses cases de votre recherche. Les visites démarrent cette semaine et les créneaux se remplissent vite.\n\nSouhaitez-vous que je vous réserve un créneau ?\n\nBien cordialement,\n[Votre prénom]\nAgent immobilier`
+function loadMandats(): Mandat[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY)
+    return raw ? JSON.parse(raw) : DEMO_MANDATS
+  } catch { return DEMO_MANDATS }
 }
 
 export default function GenerationPage() {
   const [ready, setReady] = useState(false)
+  const [mandats, setMandats] = useState<Mandat[]>([])
   const [selectedMandat, setSelectedMandat] = useState("")
   const [selectedPortail, setSelectedPortail] = useState("SeLoger")
   const [mode, setMode] = useState<"annonce" | "email">("annonce")
   const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState("")
+  const [error, setError] = useState("")
   const [historique, setHistorique] = useState<HistoriqueItem[]>([])
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
+      setMandats(loadMandats())
       setReady(true)
     })
   }, [])
 
   if (!ready) return null
 
-  const mandat = mandatsDemo.find(m => m.id === selectedMandat)
+  const mandat = mandats.find(m => m.id === selectedMandat)
 
   async function handleGenerate() {
     if (!mandat) return
     setGenerating(true)
     setResult("")
-    await new Promise(r => setTimeout(r, 900))
-    const texte = mode === "annonce" ? genererAnnonce(mandat, selectedPortail) : genererEmail(mandat)
-    setResult(texte)
-    setHistorique(h => [{
-      portail: mode === "annonce" ? selectedPortail : "Email relance",
-      texte,
-      date: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
-      type: mode,
-    }, ...h.slice(0, 9)])
-    setGenerating(false)
+    setError("")
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mandat, mode, portail: selectedPortail }),
+      })
+      if (!res.ok) throw new Error("Erreur API")
+      const { texte } = await res.json()
+      setResult(texte)
+      setHistorique(h => [{
+        portail: mode === "annonce" ? selectedPortail : "Email relance",
+        texte,
+        date: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+        type: mode,
+      }, ...h.slice(0, 9)])
+    } catch {
+      setError("Une erreur est survenue. Vérifie ta clé OpenAI.")
+    } finally {
+      setGenerating(false)
+    }
   }
 
   function handleCopy() {
@@ -114,8 +146,29 @@ export default function GenerationPage() {
                 className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-fuchsia-400"
               >
                 <option value="">Choisir un mandat...</option>
-                {mandatsDemo.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+                {mandats.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.type} — {m.adresse}, {m.ville}
+                  </option>
+                ))}
               </select>
+
+              {/* Résumé du mandat sélectionné */}
+              {mandat && (
+                <div className="mt-3 p-3 rounded-xl bg-gray-50 text-xs text-gray-500 font-medium space-y-1">
+                  <p>{mandat.surface} m² · {mandat.pieces} pièce{mandat.pieces > 1 ? "s" : ""} · {mandat.prix.toLocaleString("fr-FR")} €</p>
+                  {mandat.etage != null && <p>Étage {mandat.etage === 0 ? "RDC" : mandat.etage}</p>}
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {mandat.dpe && <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-md">DPE {mandat.dpe}</span>}
+                    {mandat.exposition && <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-md">{mandat.exposition}</span>}
+                    {mandat.etat && <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-md">{mandat.etat}</span>}
+                    {mandat.parking && <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-md">Parking</span>}
+                    {mandat.balcon && <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-md">Balcon</span>}
+                    {mandat.cave && <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-md">Cave</span>}
+                    {mandat.ascenseur && <span className="bg-white border border-gray-200 px-2 py-0.5 rounded-md">Ascenseur</span>}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Portail (si annonce) */}
@@ -142,9 +195,9 @@ export default function GenerationPage() {
               className="w-full py-4 bg-fuchsia-600 text-white font-extrabold rounded-2xl hover:bg-fuchsia-700 transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
             >
               {generating ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Génération...</>
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Génération en cours...</>
               ) : (
-                <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Générer</>
+                <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Générer avec IA</>
               )}
             </button>
           </div>
@@ -162,7 +215,11 @@ export default function GenerationPage() {
                   </button>
                 )}
               </div>
-              {result ? (
+              {error ? (
+                <div className="flex items-center justify-center h-64 text-red-400">
+                  <p className="text-sm font-medium">{error}</p>
+                </div>
+              ) : result ? (
                 <pre className="whitespace-pre-wrap text-sm text-gray-800 font-medium leading-relaxed font-sans">{result}</pre>
               ) : (
                 <div className="flex items-center justify-center h-64 text-gray-300">
