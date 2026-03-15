@@ -36,9 +36,15 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-3">
           {email && (
-            <button onClick={handleLogout} className="text-gray-500 hover:text-gray-900 font-semibold text-sm transition-colors">
-              Déconnexion
-            </button>
+            <>
+              <a href="/app" className="bg-gray-950 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
+                Outil IA
+              </a>
+              <button onClick={handleLogout} className="text-gray-500 hover:text-gray-900 font-semibold text-sm transition-colors">
+                Déconnexion
+              </button>
+            </>
           )}
           <a href={ctaHref} className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors">
             {ctaLabel}
@@ -234,6 +240,26 @@ export default function HomePage() {
           {!email && <p className="text-fuchsia-300 font-medium text-xs mt-4">Aucune carte bancaire · Annulation à tout moment</p>}
         </div>
       </section>
+
+      {/* OUTIL IA — visible quand connecté */}
+      {email && (
+        <section className="bg-gray-950 px-10 py-16">
+          <div className="max-w-4xl mx-auto flex items-center justify-between gap-8">
+            <div>
+              <div className="w-2 h-2 rounded-full bg-fuchsia-500 mb-4 animate-pulse" />
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Outil IA</p>
+              <h2 className="text-4xl font-extrabold text-white mb-3">Prêt à utiliser l'outil ?</h2>
+              <p className="text-gray-400 font-medium text-base">Lance l'outil IA et automatise tes premiers workflows dès maintenant.</p>
+            </div>
+            <a href="/app" className="shrink-0 bg-fuchsia-600 text-white font-bold text-base px-10 py-5 rounded-2xl hover:bg-fuchsia-500 transition-colors flex items-center gap-3">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Accéder à l'outil
+            </a>
+          </div>
+        </section>
+      )}
 
       {/* FOOTER */}
       <footer className="bg-gray-950 text-gray-500 px-10 py-8 flex items-center justify-between">
