@@ -28,7 +28,7 @@ export default function HomePage() {
 
       {/* NAVBAR */}
       <nav className="flex items-center justify-between px-10 py-5 border-b border-gray-200 bg-white sticky top-0 z-50">
-        <a href={email ? "/dashboard" : "/"} className="text-lg font-extrabold tracking-tight text-gray-900">Flowly</a>
+        <a href={email ? "/dashboard" : "/"} className="text-lg font-extrabold tracking-tight text-gray-900">Cléo</a>
         <div className="flex gap-8 text-sm font-semibold text-gray-500">
           <a href="#features" className="hover:text-gray-900 transition-colors">Fonctionnalités</a>
           <a href="#pricing" className="hover:text-gray-900 transition-colors">Tarifs</a>
@@ -138,7 +138,7 @@ export default function HomePage() {
           <h2 className="text-5xl font-extrabold mb-16">Ce qu'ils en disent</h2>
           <div className="grid grid-cols-3 gap-6">
             {[
-              { quote: "Flowly m'a fait gagner 5h par semaine. Je génère mes annonces en 30 secondes au lieu de 20 minutes.", name: "Marc D.", role: "Agent immobilier, Paris 15e" },
+              { quote: "Cléo m'a fait gagner 5h par semaine. Je génère mes annonces en 30 secondes au lieu de 20 minutes.", name: "Marc D.", role: "Agent immobilier, Paris 15e" },
               { quote: "J'ai rentré mes 25 mandats en une heure. Depuis, je ne perds plus un prospect.", name: "Sophie L.", role: "Négociatrice, Lyon" },
               { quote: "Les annonces générées sont meilleures que ce que j'écrivais moi-même. Mes biens se vendent plus vite.", name: "Thomas R.", role: "Agent indépendant, Bordeaux" },
             ].map(t => (
@@ -233,7 +233,7 @@ export default function HomePage() {
         <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
         <div className="relative">
           <h2 className="text-6xl font-extrabold mb-6">Prêt à gagner du temps ?</h2>
-          <p className="text-fuchsia-200 font-medium text-lg mb-10">Rejoins 500+ agents immobiliers qui utilisent Flowly chaque jour.</p>
+          <p className="text-fuchsia-200 font-medium text-lg mb-10">Rejoins 500+ agents immobiliers qui utilisent Cléo chaque jour.</p>
           <a href={ctaHref} className="inline-block bg-white text-fuchsia-700 font-bold text-base px-10 py-4 rounded-full hover:bg-fuchsia-50 transition-colors">
             {email ? "Accéder à mes outils →" : "Commencer gratuitement →"}
           </a>
@@ -263,13 +263,13 @@ export default function HomePage() {
 
       {/* FOOTER */}
       <footer className="bg-gray-950 text-gray-500 px-10 py-8 flex items-center justify-between">
-        <span className="text-white font-extrabold">Flowly</span>
+        <span className="text-white font-extrabold">Cléo</span>
         <div className="flex gap-8 text-sm font-semibold">
           <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
           <a href="#" className="hover:text-white transition-colors">Conditions</a>
           <a href="/support" className="hover:text-white transition-colors">Contact</a>
         </div>
-        <span className="text-xs font-medium">© 2026 Flowly</span>
+        <span className="text-xs font-medium">© 2026 Cléo</span>
       </footer>
 
     </main>

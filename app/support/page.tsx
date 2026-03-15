@@ -35,7 +35,7 @@ export default function SupportPage() {
 
       {/* NAVBAR */}
       <nav className="flex items-center justify-between px-10 py-5 border-b border-gray-200 bg-white sticky top-0 z-50">
-        <a href="/" className="font-extrabold text-lg tracking-tight text-gray-900">Flowly</a>
+        <a href="/" className="font-extrabold text-lg tracking-tight text-gray-900">Cléo</a>
         <a href="/dashboard" className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors">
           Mon compte
         </a>
@@ -180,13 +180,13 @@ export default function SupportPage() {
 
       {/* FOOTER */}
       <footer className="bg-gray-950 text-gray-500 px-10 py-8 flex items-center justify-between">
-        <span className="text-white font-extrabold">Flowly</span>
+        <span className="text-white font-extrabold">Cléo</span>
         <div className="flex gap-8 text-sm font-semibold">
           <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
           <a href="#" className="hover:text-white transition-colors">Conditions</a>
           <a href="/support" className="hover:text-white transition-colors">Contact</a>
         </div>
-        <span className="text-xs font-medium">© 2026 Flowly</span>
+        <span className="text-xs font-medium">© 2026 Cléo</span>
       </footer>
 
     </div>

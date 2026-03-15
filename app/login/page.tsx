@@ -59,7 +59,7 @@ export default function LoginPage() {
       <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
       <div className="relative w-full max-w-sm">
-        <a href="/" className="block text-center text-white font-extrabold text-2xl mb-10 tracking-tight">Flowly</a>
+        <a href="/" className="block text-center text-white font-extrabold text-2xl mb-10 tracking-tight">Cléo</a>
         <div className="bg-white rounded-3xl p-8 shadow-xl">
 
           {/* Titre */}
@@ -71,7 +71,7 @@ export default function LoginPage() {
               {isSignup ? "Créer un compte" : "Se connecter"}
             </h1>
             <p className="text-sm text-gray-500 font-medium mb-6">
-              {isSignup ? "Commence gratuitement, sans carte bancaire." : "Connecte-toi à ton espace Flowly."}
+              {isSignup ? "Commence gratuitement, sans carte bancaire." : "Connecte-toi à ton espace Cléo."}
             </p>
           </div>
 

@@ -58,7 +58,7 @@ export default function DashboardPage() {
 
       {/* NAVBAR */}
       <nav className="bg-white border-b border-gray-200 px-10 py-4 flex items-center justify-between">
-        <a href="/" className="text-gray-900 font-extrabold text-lg tracking-tight">Flowly</a>
+        <a href="/" className="text-gray-900 font-extrabold text-lg tracking-tight">Cléo</a>
         <a href="/app" className="bg-gray-950 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
           Outil IA

@@ -12,10 +12,10 @@ export async function POST(request: Request) {
   })
 
   await transporter.sendMail({
-    from: `"Flowly Support" <${process.env.GMAIL_USER}>`,
+    from: `"Cléo Support" <${process.env.GMAIL_USER}>`,
     to: "patelamit134@gmail.com",
     replyTo: email,
-    subject: `[Support Flowly] ${subject}`,
+    subject: `[Support Cléo] ${subject}`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #a21caf;">Nouveau message de support</h2>

@@ -82,7 +82,7 @@ export default function ProspectsPage() {
           </svg>
         </a>
         <span className="text-gray-300">|</span>
-        <a href="/" className="font-extrabold text-gray-900 text-lg tracking-tight">Flowly</a>
+        <a href="/" className="font-extrabold text-gray-900 text-lg tracking-tight">Cléo</a>
         <span className="text-sm font-semibold text-gray-400">/ Prospects</span>
         <div className="ml-auto">
           <button

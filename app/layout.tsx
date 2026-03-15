@@ -9,7 +9,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Flowly",
+  title: "Cléo",
   description: "Automatise tes workflows, vends plus vite",
 };
 
