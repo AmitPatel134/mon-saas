@@ -2,7 +2,7 @@
 import { useState, useRef } from "react"
 import { supabase } from "@/lib/supabase"
 
-type View = "login" | "signup" | "forgot" | "forgot-sent"
+type View = "login" | "signup" | "forgot" | "forgot-sent" | "signup-sent"
 
 export default function LoginPage() {
   const [view, setView] = useState<View>("login")
@@ -37,7 +37,9 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name: email.split("@")[0] })
       })
-      setMessage("Vérifie ta boîte mail pour confirmer ton compte.")
+      switchView("signup-sent")
+      setLoading(false)
+      return
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setMessage(error.message); setLoading(false); return }
@@ -75,8 +77,34 @@ export default function LoginPage() {
         <a href="/" className="block text-center text-white font-extrabold text-2xl mb-10 tracking-tight">Cléo</a>
         <div className="bg-white rounded-3xl p-8 shadow-xl">
 
-          {/* Vue: Lien envoyé */}
-          {view === "forgot-sent" ? (
+          {/* Vue: Inscription — confirmation email */}
+          {view === "signup-sent" ? (
+            <div className="text-center py-4">
+              <div className="w-16 h-16 rounded-2xl bg-fuchsia-600 flex items-center justify-center mx-auto mb-5">
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Vérifie ta boîte mail</h1>
+              <p className="text-sm text-gray-500 font-medium mb-1">Un email de confirmation a été envoyé à</p>
+              <p className="text-sm font-bold text-gray-900 mb-6">{email}</p>
+              <p className="text-xs text-gray-400 font-medium mb-8">Clique sur le lien dans l&apos;email pour activer ton compte, puis reviens te connecter.</p>
+              <a
+                href="https://mail.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-3 bg-fuchsia-600 text-white font-bold rounded-xl text-sm hover:bg-fuchsia-700 transition-colors mb-3"
+              >
+                Ouvrir ma boîte mail →
+              </a>
+              <button
+                onClick={() => switchView("login")}
+                className="text-xs text-gray-400 font-semibold hover:text-fuchsia-600 transition-colors"
+              >
+                Retour à la connexion
+              </button>
+            </div>
+          ) : view === "forgot-sent" ? (
             <div className="text-center py-4">
               <div className="w-12 h-12 rounded-2xl bg-fuchsia-100 flex items-center justify-center mx-auto mb-4">
                 <svg className="w-6 h-6 text-fuchsia-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -103,6 +131,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="ton@email.com"
                   onChange={e => setEmail(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleForgotPassword()}
                   className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
                 />
                 <button
@@ -169,6 +198,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="ton@email.com"
                   onChange={e => setEmail(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && passwordRef.current?.focus()}
                   className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
                 />
                 <input
@@ -176,6 +206,7 @@ export default function LoginPage() {
                   type="password"
                   placeholder="Mot de passe"
                   onChange={e => setPassword(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleAuth()}
                   className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
                 />
                 <button
