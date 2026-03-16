@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
+import Toast from "@/components/Toast"
 
 const PORTAILS_ANNONCE = ["SeLoger", "Leboncoin", "Logic-Immo", "PAP", "Bien'ici"]
 const RESEAUX_SOCIAL = ["Instagram", "LinkedIn", "Facebook"]
@@ -125,6 +126,18 @@ export default function GenerationPage() {
   const [historique, setHistorique] = useState<Generation[]>([])
   const [filtreHisto, setFiltreHisto] = useState("tous")
   const [selected, setSelected] = useState<Generation | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2500)
+  }
+
+  // Persist config dans localStorage
+  useEffect(() => { localStorage.setItem("cleo_gen_mode", mode) }, [mode])
+  useEffect(() => { if (selectedMandat) localStorage.setItem("cleo_gen_mandat", selectedMandat) }, [selectedMandat])
+  useEffect(() => { localStorage.setItem("cleo_gen_ton", ton) }, [ton])
+  useEffect(() => { localStorage.setItem("cleo_gen_longueur", longueur) }, [longueur])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -137,11 +150,21 @@ export default function GenerationPage() {
         fetch(`/api/generations?email=${encodeURIComponent(email)}`).then(r => r.json()),
         fetch(`/api/users?email=${encodeURIComponent(email)}`).then(r => r.json()),
       ]).then(([mandatsData, planData, genData, userData]) => {
-        setMandats(Array.isArray(mandatsData) ? mandatsData : [])
+        const mList = Array.isArray(mandatsData) ? mandatsData : []
+        setMandats(mList)
         setPlanLimit(planData.limits?.generationsPerMonth ?? null)
         setGenCount(planData.usage?.generationsThisMonth ?? 0)
         setHistorique(Array.isArray(genData) ? genData : [])
         if (userData?.name) setUserName(userData.name)
+        // Restaurer config depuis localStorage
+        const savedMandat = localStorage.getItem("cleo_gen_mandat")
+        if (savedMandat && mList.some((m: { id: string }) => m.id === savedMandat)) setSelectedMandat(savedMandat)
+        const savedMode = localStorage.getItem("cleo_gen_mode") as GenerationType
+        if (savedMode) setMode(savedMode)
+        const savedTon = localStorage.getItem("cleo_gen_ton") as Ton
+        if (savedTon) setTon(savedTon)
+        const savedLongueur = localStorage.getItem("cleo_gen_longueur") as Longueur
+        if (savedLongueur) setLongueur(savedLongueur)
         setReady(true)
       })
     })
@@ -187,6 +210,7 @@ export default function GenerationPage() {
       if (!res.ok) throw new Error("Erreur API")
       const { texte } = await res.json()
       setResult(texte)
+      showToast("Texte généré ✓")
       const modeLabel = TYPES.find(t => t.value === mode)?.label ?? mode
       const portailLabel = portailForMode ? ` · ${portailForMode}` : ""
       setResultLabel(`${modeLabel}${portailLabel}`)
@@ -564,6 +588,8 @@ export default function GenerationPage() {
         </div>
 
       </div>
+
+      {toast && <Toast message={toast} onHide={() => setToast(null)} />}
     </div>
   )
 }

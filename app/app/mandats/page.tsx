@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
+import Toast from "@/components/Toast"
 
 type Statut = "disponible" | "sous-compromis" | "vendu"
 
@@ -51,6 +52,22 @@ export default function MandatsPage() {
   const [saving, setSaving] = useState(false)
   const [planLimit, setPlanLimit] = useState<number | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2500)
+  }
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return
+      setConfirmDelete(null)
+      setShowForm(false)
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -105,12 +122,14 @@ export default function MandatsPage() {
     setSaving(false)
     setShowForm(false)
     setForm(EMPTY)
+    showToast(form.id ? "Mandat mis à jour ✓" : "Mandat ajouté ✓")
   }
 
   async function handleDelete(id: string) {
     await fetch(`/api/mandats/${id}`, { method: "DELETE" })
     setMandats(prev => prev.filter(m => m.id !== id))
     setConfirmDelete(null)
+    showToast("Mandat supprimé")
   }
 
   const f = (field: keyof Mandat) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -169,10 +188,27 @@ export default function MandatsPage() {
 
         {/* LISTE */}
         {filtered.length === 0 ? (
-          <div className="text-center py-24 text-gray-400">
-            <p className="text-lg font-semibold mb-2">Aucun mandat trouvé</p>
-            <p className="text-sm">Ajoutez votre premier mandat avec le bouton ci-dessus.</p>
-          </div>
+          mandats.length === 0 ? (
+            <div className="text-center py-24">
+              <div className="w-14 h-14 rounded-2xl bg-fuchsia-50 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </div>
+              <p className="text-base font-extrabold text-gray-900 mb-1">Aucun mandat pour l&apos;instant</p>
+              <p className="text-sm text-gray-400 font-medium mb-5">Ajoute ton premier bien pour commencer.</p>
+              <button
+                onClick={() => { setForm(EMPTY); setShowForm(true) }}
+                className="inline-flex items-center gap-2 bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors"
+              >
+                + Ajouter mon premier mandat
+              </button>
+            </div>
+          ) : (
+            <div className="text-center py-20 text-gray-400">
+              <p className="text-sm font-medium">Aucun mandat pour ce filtre.</p>
+            </div>
+          )
         ) : (
           <div className="flex flex-col gap-3">
             {filtered.map(m => (
@@ -410,6 +446,8 @@ export default function MandatsPage() {
           </div>
         </div>
       )}
+
+      {toast && <Toast message={toast} onHide={() => setToast(null)} />}
     </div>
   )
 }

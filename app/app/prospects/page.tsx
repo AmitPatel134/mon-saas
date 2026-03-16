@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
+import Toast from "@/components/Toast"
 
 type StatutProspect = "nouveau" | "en-recherche" | "chaud" | "signé"
 
@@ -51,6 +52,23 @@ export default function ProspectsPage() {
 
   // Confirmation suppression
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2500)
+  }
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return
+      setConfirmDelete(null)
+      setShowCreate(false)
+      setShowEdit(false)
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -115,6 +133,7 @@ export default function ProspectsPage() {
     setCreating(false)
     setShowCreate(false)
     setCreateForm({ ...EMPTY_NEW })
+    showToast("Prospect ajouté ✓")
   }
 
   // --- ÉDITION ---
@@ -141,6 +160,7 @@ export default function ProspectsPage() {
     setEditing(false)
     setShowEdit(false)
     setEditForm(null)
+    showToast("Prospect mis à jour ✓")
   }
 
   // --- SUPPRESSION ---
@@ -149,6 +169,7 @@ export default function ProspectsPage() {
     setProspects(ps => ps.filter(p => p.id !== id))
     setConfirmDelete(null)
     if (detail?.id === id) setDetail(null)
+    showToast("Prospect supprimé")
   }
 
   // --- STATUT ---
@@ -213,9 +234,27 @@ export default function ProspectsPage() {
           {/* LISTE */}
           <div className="col-span-2 flex flex-col gap-3">
             {filtered.length === 0 && (
-              <div className="text-center py-20 text-gray-400">
-                <p className="text-sm font-medium">Aucun prospect dans cette catégorie.</p>
-              </div>
+              prospects.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-extrabold text-gray-900 mb-1">Aucun prospect pour l&apos;instant</p>
+                  <p className="text-xs text-gray-400 font-medium mb-4">Ajoute ton premier contact acheteur.</p>
+                  <button
+                    onClick={() => { setCreateForm({ ...EMPTY_NEW }); setShowCreate(true) }}
+                    className="inline-flex items-center gap-2 bg-indigo-600 text-white font-bold text-sm px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors"
+                  >
+                    + Ajouter mon premier prospect
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center py-16 text-gray-400">
+                  <p className="text-sm font-medium">Aucun prospect dans cette catégorie.</p>
+                </div>
+              )
             )}
             {filtered.map(p => (
               <button
@@ -513,6 +552,8 @@ export default function ProspectsPage() {
           </div>
         </div>
       )}
+
+      {toast && <Toast message={toast} onHide={() => setToast(null)} />}
     </div>
   )
 }
