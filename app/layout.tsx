@@ -9,8 +9,30 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Cléo",
-  description: "Automatise tes workflows, vends plus vite",
+  title: {
+    default: "Cléo — CRM IA pour agents immobiliers",
+    template: "%s | Cléo",
+  },
+  description: "Rédigez vos annonces, emails, SMS et comptes rendus de visite en quelques secondes grâce à l'IA. Gérez mandats et prospects. Matching automatique.",
+  keywords: ["CRM immobilier", "agent immobilier", "IA immobilier", "annonce immobilière", "génération texte immobilier", "logiciel agent immo"],
+  authors: [{ name: "Cléo" }],
+  openGraph: {
+    title: "Cléo — CRM IA pour agents immobiliers",
+    description: "Rédigez annonces, emails, SMS et comptes rendus en quelques secondes. Matching mandats / prospects automatique.",
+    url: "https://tryCleo.fr",
+    siteName: "Cléo",
+    locale: "fr_FR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cléo — CRM IA pour agents immobiliers",
+    description: "Rédigez annonces, emails, SMS et comptes rendus en quelques secondes. Matching mandats / prospects automatique.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

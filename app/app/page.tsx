@@ -2,27 +2,45 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 
-const mandatsDemo = [
-  { id: "1", type: "Appartement", adresse: "12 rue de la Paix", ville: "Paris 75002", surface: 65, prix: 580000, statut: "disponible" as const },
-  { id: "2", type: "Maison", adresse: "8 allée des Roses", ville: "Lyon 69006", surface: 120, prix: 450000, statut: "sous-compromis" as const },
-  { id: "3", type: "Studio", adresse: "3 place Bellecour", ville: "Lyon 69002", surface: 28, prix: 145000, statut: "vendu" as const },
-]
+interface Mandat {
+  id: string
+  type: string
+  adresse: string
+  ville: string
+  surface: number
+  prix: number
+  statut: string
+}
 
-const prospectsDemo = [
-  { id: "1", nom: "Julie Martin", budget: 400000, statut: "chaud" as const, rappel: "2026-03-20", criteres: "Appt 3p, Paris" },
-  { id: "2", nom: "Pierre Dubois", budget: 550000, statut: "en-recherche" as const, rappel: "", criteres: "Maison jardin, Lyon" },
-  { id: "3", nom: "Camille Leroy", budget: 160000, statut: "nouveau" as const, rappel: "", criteres: "Studio, investissement" },
-]
+interface Prospect {
+  id: string
+  nom: string
+  budget: number
+  statut: string
+  rappel?: string
+  criteres?: string
+}
 
-const dernierGenere = `🏠 Appartement 65m² — 3 pièces\n\n📍 12 rue de la Paix, Paris 75002\n\nBien rare sur le marché ! Découvrez ce magnifique appartement de 65m² idéalement situé...`
+interface Generation {
+  texte: string
+  portail: string | null
+  type: string
+}
 
-const statutMandat = {
+interface DashboardData {
+  mandats: Mandat[]
+  prospects: Prospect[]
+  dernieresGenerations: Generation[]
+  stats: { mandatsDisponibles: number; prospectsChauds: number; generationsAujourdhui: number }
+}
+
+const statutMandat: Record<string, { label: string; classes: string }> = {
   disponible: { label: "Disponible", classes: "bg-emerald-100 text-emerald-700" },
   "sous-compromis": { label: "Sous compromis", classes: "bg-amber-100 text-amber-700" },
   vendu: { label: "Vendu", classes: "bg-gray-100 text-gray-500" },
 }
 
-const statutProspect = {
+const statutProspect: Record<string, { label: string; classes: string }> = {
   nouveau: { label: "Nouveau", classes: "bg-blue-100 text-blue-700" },
   "en-recherche": { label: "En recherche", classes: "bg-amber-100 text-amber-700" },
   chaud: { label: "Chaud 🔥", classes: "bg-orange-100 text-orange-700" },
@@ -32,19 +50,27 @@ const statutProspect = {
 export default function AppPage() {
   const [email, setEmail] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
+  const [data, setData] = useState<DashboardData>({
+    mandats: [],
+    prospects: [],
+    dernieresGenerations: [],
+    stats: { mandatsDisponibles: 0, prospectsChauds: 0, generationsAujourdhui: 0 },
+  })
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      setEmail(session.user.email ?? null)
-      setReady(true)
+      const userEmail = session.user.email ?? ""
+      setEmail(userEmail)
+      fetch(`/api/dashboard?email=${encodeURIComponent(userEmail)}`)
+        .then(r => r.json())
+        .then(d => { setData(d); setReady(true) })
     })
   }, [])
 
   if (!ready) return null
 
-  const prospectsChauds = prospectsDemo.filter(p => p.statut === "chaud").length
-  const mandatsActifs = mandatsDemo.filter(m => m.statut === "disponible").length
+  const { mandats, prospects, dernieresGenerations, stats } = data
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -60,27 +86,34 @@ export default function AppPage() {
 
       <div className="max-w-5xl mx-auto px-6 py-10">
 
-        {/* KPIs */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[
-            { value: mandatsActifs, label: "mandats disponibles", color: "text-fuchsia-400" },
-            { value: prospectsChauds, label: "prospects chauds", color: "text-orange-400" },
-            { value: 1, label: "annonce générée aujourd'hui", color: "text-violet-400" },
-          ].map(k => (
-            <div key={k.label} className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
-              <p className={`text-4xl font-extrabold ${k.color}`}>{k.value}</p>
-              <p className="text-sm text-gray-400 font-medium mt-1">{k.label}</p>
+        {/* MATCHING BANNER */}
+        <a href="/app/matching" className="group flex items-center justify-between bg-fuchsia-950/40 border border-fuchsia-500/20 rounded-2xl px-6 py-4 mb-4 hover:border-fuchsia-500/50 hover:bg-fuchsia-950/60 transition-all">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-fuchsia-600 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
             </div>
-          ))}
-        </div>
+            <div>
+              <p className="text-sm font-extrabold text-white">Matching mandats / prospects</p>
+              <p className="text-xs text-fuchsia-300/60 font-medium">Trouve automatiquement les acheteurs qui correspondent à chaque bien</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold text-fuchsia-400 group-hover:text-fuchsia-300 transition-colors shrink-0">
+            Lancer le matching
+            <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </a>
 
-        {/* COCKPIT — 3 colonnes */}
         <div className="grid grid-cols-3 gap-4">
 
           {/* MANDATS */}
-          <a href="/app/mandats" className="group bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-fuchsia-500/50 hover:bg-white/8 transition-all flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
+          <a href="/app/mandats" className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-fuchsia-500/40 hover:bg-white/[0.07] transition-all flex flex-col min-h-[520px]">
+            {/* Header stat */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/5">
+              <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-fuchsia-600 flex items-center justify-center shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -88,30 +121,41 @@ export default function AppPage() {
                 </div>
                 <p className="text-sm font-extrabold text-white">Mandats</p>
               </div>
-              <svg className="w-4 h-4 text-gray-600 group-hover:text-fuchsia-400 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
+              <div className="text-right">
+                <p className="text-2xl font-extrabold text-fuchsia-400 leading-none">{stats.mandatsDisponibles}</p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">disponible{stats.mandatsDisponibles !== 1 ? "s" : ""}</p>
+              </div>
             </div>
-            <div className="flex flex-col gap-2 flex-1">
-              {mandatsDemo.map(m => (
-                <div key={m.id} className="bg-white/5 rounded-xl p-3">
-                  <div className="flex items-center justify-between mb-1">
+            {/* Liste */}
+            <div className="flex flex-col gap-2 p-4 flex-1">
+              {mandats.length === 0 ? (
+                <p className="text-xs text-gray-600 font-medium py-6 text-center">Aucun mandat enregistré</p>
+              ) : mandats.map(m => (
+                <div key={m.id} className="bg-white/5 rounded-2xl px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-bold text-white truncate">{m.adresse}</p>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${statutMandat[m.statut].classes}`}>
-                      {statutMandat[m.statut].label}
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${(statutMandat[m.statut] ?? statutMandat.disponible).classes}`}>
+                      {(statutMandat[m.statut] ?? statutMandat.disponible).label}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 font-medium">{m.surface}m² · {m.prix.toLocaleString("fr-FR")} €</p>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">{m.surface}m² · {m.prix.toLocaleString("fr-FR")} €</p>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-600 font-semibold mt-4 group-hover:text-fuchsia-400 transition-colors">Gérer mes mandats →</p>
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
+              <p className="text-xs text-gray-600 font-semibold group-hover:text-fuchsia-400 transition-colors">Gérer mes mandats</p>
+              <svg className="w-4 h-4 text-gray-600 group-hover:text-fuchsia-400 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </a>
 
           {/* PROSPECTS */}
-          <a href="/app/prospects" className="group bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-indigo-500/50 hover:bg-white/8 transition-all flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
+          <a href="/app/prospects" className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-indigo-500/40 hover:bg-white/[0.07] transition-all flex flex-col min-h-[520px]">
+            {/* Header stat */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/5">
+              <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -119,33 +163,44 @@ export default function AppPage() {
                 </div>
                 <p className="text-sm font-extrabold text-white">Prospects</p>
               </div>
-              <svg className="w-4 h-4 text-gray-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
+              <div className="text-right">
+                <p className="text-2xl font-extrabold text-orange-400 leading-none">{stats.prospectsChauds}</p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">chaud{stats.prospectsChauds !== 1 ? "s" : ""}</p>
+              </div>
             </div>
-            <div className="flex flex-col gap-2 flex-1">
-              {prospectsDemo.map(p => (
-                <div key={p.id} className="bg-white/5 rounded-xl p-3">
-                  <div className="flex items-center justify-between mb-1">
+            {/* Liste */}
+            <div className="flex flex-col gap-2 p-4 flex-1">
+              {prospects.length === 0 ? (
+                <p className="text-xs text-gray-600 font-medium py-6 text-center">Aucun prospect enregistré</p>
+              ) : prospects.map(p => (
+                <div key={p.id} className="bg-white/5 rounded-2xl px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-bold text-white">{p.nom}</p>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${statutProspect[p.statut].classes}`}>
-                      {statutProspect[p.statut].label}
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${(statutProspect[p.statut] ?? statutProspect.nouveau).classes}`}>
+                      {(statutProspect[p.statut] ?? statutProspect.nouveau).label}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 font-medium">{p.criteres}</p>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5 truncate">{p.criteres}</p>
                   {p.rappel && (
-                    <p className="text-xs text-amber-500 font-medium mt-1">🔔 {new Date(p.rappel).toLocaleDateString("fr-FR")}</p>
+                    <p className="text-xs text-amber-500 font-medium mt-0.5">🔔 {new Date(p.rappel).toLocaleDateString("fr-FR")}</p>
                   )}
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-600 font-semibold mt-4 group-hover:text-indigo-400 transition-colors">Voir mon pipeline →</p>
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
+              <p className="text-xs text-gray-600 font-semibold group-hover:text-indigo-400 transition-colors">Voir mon pipeline</p>
+              <svg className="w-4 h-4 text-gray-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </a>
 
           {/* GÉNÉRATION */}
-          <a href="/app/generation" className="group bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-violet-500/50 hover:bg-white/8 transition-all flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
+          <a href="/app/generation" className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-violet-500/40 hover:bg-white/[0.07] transition-all flex flex-col min-h-[520px]">
+            {/* Header stat */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/5">
+              <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -153,25 +208,39 @@ export default function AppPage() {
                 </div>
                 <p className="text-sm font-extrabold text-white">Génération IA</p>
               </div>
-              <svg className="w-4 h-4 text-gray-600 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className="text-right">
+                <p className="text-2xl font-extrabold text-violet-400 leading-none">{stats.generationsAujourdhui}</p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">aujourd&apos;hui</p>
+              </div>
+            </div>
+            {/* Dernières générations */}
+            <div className="p-4 flex-1 flex flex-col gap-3">
+              {dernieresGenerations.length === 0 ? (
+                <div className="flex items-center justify-center flex-1 py-6">
+                  <p className="text-xs text-gray-600 font-medium text-center">Aucune génération pour l&apos;instant</p>
+                </div>
+              ) : dernieresGenerations.map((g, i) => (
+                <div key={i} className="bg-white/5 rounded-2xl px-3 py-2.5 flex-1 min-h-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-violet-900/60 text-violet-300">
+                      {g.portail && !["email", "sms", "visite", "vendeur"].includes(g.portail) ? g.portail : g.type}
+                    </span>
+                    {i === 0 && <span className="text-xs text-gray-600 font-medium">dernière</span>}
+                  </div>
+                  <p className="text-xs text-gray-400 font-medium leading-relaxed line-clamp-4 overflow-hidden">{g.texte}</p>
+                </div>
+              ))}
+            </div>
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
+              <p className="text-xs text-gray-600 font-semibold group-hover:text-violet-400 transition-colors">Générer un document</p>
+              <svg className="w-4 h-4 text-gray-600 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </div>
-            <div className="flex-1 bg-white/5 rounded-xl p-3 mb-2">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-violet-900/60 text-violet-300">SeLoger</span>
-                <span className="text-xs text-gray-600 font-medium">dernière génération</span>
-              </div>
-              <p className="text-xs text-gray-400 font-medium leading-relaxed line-clamp-5 whitespace-pre-line">{dernierGenere}</p>
-            </div>
-            <p className="text-xs text-gray-600 font-semibold mt-2 group-hover:text-violet-400 transition-colors">Générer une annonce →</p>
           </a>
 
         </div>
-
-        {/* Label discret */}
-        <p className="text-center text-xs text-gray-700 font-medium mt-8">Sélectionne un outil pour continuer</p>
-
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import PlanBanner from "@/components/PlanBanner"
 
 type Statut = "disponible" | "sous-compromis" | "vendu"
 
@@ -33,43 +34,36 @@ const statutConfig: Record<Statut, { label: string; classes: string }> = {
   vendu: { label: "Vendu", classes: "bg-gray-100 text-gray-500" },
 }
 
-const DEMO: Mandat[] = [
-  { id: "1", type: "Appartement", adresse: "12 rue de la Paix", ville: "Paris 75002", surface: 65, pieces: 3, prix: 580000, statut: "disponible", etage: 4, exposition: "Sud", chauffage: "Collectif gaz", dpe: "C", parking: false, cave: true, balcon: true, ascenseur: true, etat: "Bon état", charges: 320, anneeConstruction: 1975, description: "Appartement lumineux avec parquet ancien, double séjour, cuisine équipée, vue dégagée." },
-  { id: "2", type: "Maison", adresse: "8 allée des Roses", ville: "Lyon 69006", surface: 120, pieces: 5, prix: 450000, statut: "sous-compromis", exposition: "Sud-Ouest", chauffage: "Pompe à chaleur", dpe: "B", parking: true, cave: false, balcon: true, ascenseur: false, etat: "Très bon état", anneeConstruction: 2005, description: "Maison avec jardin de 400m², garage double, terrasse couverte, quartier résidentiel calme." },
-  { id: "3", type: "Studio", adresse: "3 place Bellecour", ville: "Lyon 69002", surface: 28, pieces: 1, prix: 145000, statut: "vendu", etage: 2, exposition: "Est", chauffage: "Électrique", dpe: "D", parking: false, cave: false, balcon: false, ascenseur: false, etat: "À rénover", charges: 80, anneeConstruction: 1960, description: "" },
-]
-
 const EMPTY: Mandat = {
   id: "", type: "Appartement", adresse: "", ville: "", surface: 0, pieces: 0, prix: 0, statut: "disponible",
   parking: false, cave: false, balcon: false, ascenseur: false,
 }
 
-const LS_KEY = "cleo_mandats"
-
-function loadMandats(): Mandat[] {
-  try {
-    const raw = localStorage.getItem(LS_KEY)
-    return raw ? JSON.parse(raw) : DEMO
-  } catch { return DEMO }
-}
-
-function saveMandats(mandats: Mandat[]) {
-  localStorage.setItem(LS_KEY, JSON.stringify(mandats))
-}
-
 export default function MandatsPage() {
   const [ready, setReady] = useState(false)
+  const [userEmail, setUserEmail] = useState("")
   const [mandats, setMandats] = useState<Mandat[]>([])
   const [filtre, setFiltre] = useState<Statut | "tous">("tous")
   const [search, setSearch] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<Mandat>(EMPTY)
+  const [saving, setSaving] = useState(false)
+  const [planLimit, setPlanLimit] = useState<number | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      setMandats(loadMandats())
-      setReady(true)
+      const email = session.user.email ?? ""
+      setUserEmail(email)
+      Promise.all([
+        fetch(`/api/mandats?email=${encodeURIComponent(email)}`).then(r => r.json()),
+        fetch(`/api/plan?email=${encodeURIComponent(email)}`).then(r => r.json()),
+      ]).then(([mandatsData, planData]) => {
+        setMandats(Array.isArray(mandatsData) ? mandatsData : [])
+        setPlanLimit(planData.limits?.mandats ?? null)
+        setReady(true)
+      })
     })
   }, [])
 
@@ -81,24 +75,41 @@ export default function MandatsPage() {
     return matchFiltre && matchSearch
   })
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.adresse || !form.ville) return
-    let updated: Mandat[]
+    setSaving(true)
     if (form.id) {
-      updated = mandats.map(m => m.id === form.id ? form : m)
+      const res = await fetch(`/api/mandats/${form.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      const updated = await res.json()
+      setMandats(prev => prev.map(m => m.id === form.id ? updated : m))
     } else {
-      updated = [...mandats, { ...form, id: Date.now().toString() }]
+      const res = await fetch("/api/mandats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, userEmail }),
+      })
+      if (res.status === 403) {
+        setSaving(false)
+        setShowForm(false)
+        window.location.href = "/pricing"
+        return
+      }
+      const created = await res.json()
+      setMandats(prev => [created, ...prev])
     }
-    setMandats(updated)
-    saveMandats(updated)
+    setSaving(false)
     setShowForm(false)
     setForm(EMPTY)
   }
 
-  function handleDelete(id: string) {
-    const updated = mandats.filter(m => m.id !== id)
-    setMandats(updated)
-    saveMandats(updated)
+  async function handleDelete(id: string) {
+    await fetch(`/api/mandats/${id}`, { method: "DELETE" })
+    setMandats(prev => prev.filter(m => m.id !== id))
+    setConfirmDelete(null)
   }
 
   const f = (field: keyof Mandat) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -121,16 +132,24 @@ export default function MandatsPage() {
         <a href="/" className="font-extrabold text-gray-900 text-lg tracking-tight">Cléo</a>
         <span className="text-sm font-semibold text-gray-400">/ Mandats</span>
         <div className="ml-auto">
-          <button
-            onClick={() => { setForm(EMPTY); setShowForm(true) }}
-            className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors"
-          >
-            + Nouveau mandat
-          </button>
+          {planLimit !== null && mandats.length >= planLimit ? (
+            <a href="/pricing" className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors">
+              Passer au Pro →
+            </a>
+          ) : (
+            <button
+              onClick={() => { setForm(EMPTY); setShowForm(true) }}
+              className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors"
+            >
+              + Nouveau mandat
+            </button>
+          )}
         </div>
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 py-10">
+
+        <PlanBanner usage={mandats.length} limit={planLimit} label="Mandats" />
 
         {/* FILTRES + RECHERCHE */}
         <div className="flex items-center gap-3 mb-8 flex-wrap">
@@ -171,8 +190,8 @@ export default function MandatsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${statutConfig[m.statut].classes}`}>
-                      {statutConfig[m.statut].label}
+                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${(statutConfig[m.statut as Statut] ?? statutConfig.disponible).classes}`}>
+                      {(statutConfig[m.statut as Statut] ?? statutConfig.disponible).label}
                     </span>
                     <span className="text-xs text-gray-400 font-medium">{m.type}</span>
                     {m.dpe && <span className="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">DPE {m.dpe}</span>}
@@ -191,7 +210,7 @@ export default function MandatsPage() {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xl font-extrabold text-gray-900">{m.prix.toLocaleString("fr-FR")} €</p>
+                  <p className="text-xl font-extrabold text-gray-900">{(m.prix ?? 0).toLocaleString("fr-FR")} €</p>
                   {m.charges && <p className="text-xs text-gray-400 font-medium mt-1">{m.charges} €/mois de charges</p>}
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
@@ -204,7 +223,7 @@ export default function MandatsPage() {
                     </svg>
                   </button>
                   <button
-                    onClick={() => handleDelete(m.id)}
+                    onClick={() => setConfirmDelete(m.id)}
                     className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -217,6 +236,29 @@ export default function MandatsPage() {
           </div>
         )}
       </div>
+
+      {/* MODAL CONFIRMATION SUPPRESSION */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-xl">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center mb-5">
+              <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">Supprimer ce mandat ?</h3>
+            <p className="text-sm text-gray-500 font-medium mb-6">Cette action est irréversible. Le mandat sera définitivement supprimé.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)} className="flex-1 py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-gray-400 transition-colors">
+                Annuler
+              </button>
+              <button onClick={() => handleDelete(confirmDelete)} className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-colors">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL FORM */}
       {showForm && (
@@ -365,9 +407,10 @@ export default function MandatsPage() {
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 py-3 bg-fuchsia-600 text-white font-bold rounded-xl text-sm hover:bg-fuchsia-700 transition-colors"
+                disabled={saving}
+                className="flex-1 py-3 bg-fuchsia-600 text-white font-bold rounded-xl text-sm hover:bg-fuchsia-700 transition-colors disabled:opacity-60"
               >
-                {form.id ? "Enregistrer" : "Ajouter"}
+                {saving ? "Enregistrement..." : form.id ? "Enregistrer" : "Ajouter"}
               </button>
             </div>
           </div>

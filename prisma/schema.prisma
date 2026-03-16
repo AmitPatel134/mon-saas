@@ -8,10 +8,65 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String     @id @default(cuid())
+  email     String     @unique
   name      String?
-  plan      String   @default("free")
-  createdAt DateTime @default(now())
+  plan      String     @default("free")
+  createdAt DateTime   @default(now())
+  mandats     Mandat[]
+  prospects   Prospect[]
+  generations Generation[]
 }
 
+model Mandat {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String
+  adresse           String
+  ville             String
+  surface           Float
+  pieces            Int
+  prix              Int
+  statut            String   @default("disponible")
+  etage             Int?
+  exposition        String?
+  chauffage         String?
+  dpe               String?
+  parking           Boolean  @default(false)
+  cave              Boolean  @default(false)
+  balcon            Boolean  @default(false)
+  ascenseur         Boolean  @default(false)
+  etat              String?
+  charges           Int?
+  anneeConstruction Int?
+  description       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Prospect {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nom          String
+  telephone    String?
+  email        String?
+  budget       Int       @default(0)
+  criteres     String?
+  statut       String    @default("nouveau")
+  rappel       DateTime?
+  biensVisites String[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Generation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  texte     String
+  portail   String?
+  type      String   @default("annonce")
+  createdAt DateTime @default(now())
+}

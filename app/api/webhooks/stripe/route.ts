@@ -1,31 +1,72 @@
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
+import Stripe from "stripe"
+
+async function getEmailFromCustomer(customerId: string): Promise<string | null> {
+  const customer = await stripe.customers.retrieve(customerId)
+  if (customer.deleted) return null
+  return (customer as Stripe.Customer).email
+}
+
+async function setUserPlan(email: string, plan: "free" | "pro") {
+  await prisma.user.updateMany({ where: { email }, data: { plan } })
+}
 
 export async function POST(request: Request) {
   const body = await request.text()
-  const sig = request.headers.get("stripe-signature")!
+  const sig = request.headers.get("stripe-signature")
 
-  const event = stripe.webhooks.constructEvent(
-    body, sig, process.env.STRIPE_WEBHOOK_SECRET!
-  )
+  if (!sig) return Response.json({ error: "Signature manquante" }, { status: 400 })
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object
-    await prisma.user.update({
-      where: { email: session.customer_email! },
-      data: { plan: "pro" }
-    })
+  let event: Stripe.Event
+  try {
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+  } catch {
+    return Response.json({ error: "Signature invalide" }, { status: 400 })
   }
 
-  if (event.type === "customer.subscription.deleted") {
-    const subscription = event.data.object
-    const customer = await stripe.customers.retrieve(
-      subscription.customer as string
-    ) as any
-    await prisma.user.update({
-      where: { email: customer.email },
-      data: { plan: "free" }
-    })
+  switch (event.type) {
+
+    // Paiement initial réussi → passer en Pro
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session
+      const email =
+        session.customer_email ??
+        (session.customer ? await getEmailFromCustomer(session.customer as string) : null)
+      if (email) await setUserPlan(email, "pro")
+      break
+    }
+
+    // Renouvellement mensuel réussi → s'assurer que le plan reste Pro
+    case "invoice.payment_succeeded": {
+      const invoice = event.data.object as Stripe.Invoice
+      if (!invoice.customer || invoice.billing_reason === "manual") break
+      const email = await getEmailFromCustomer(invoice.customer as string)
+      if (email) await setUserPlan(email, "pro")
+      break
+    }
+
+    // Changement de statut d'abonnement (suspension, reprise, échec de paiement...)
+    case "customer.subscription.updated": {
+      const sub = event.data.object as Stripe.Subscription
+      const email = await getEmailFromCustomer(sub.customer as string)
+      if (!email) break
+      if (["active", "trialing"].includes(sub.status)) {
+        await setUserPlan(email, "pro")
+      } else if (["canceled", "unpaid", "past_due", "paused"].includes(sub.status)) {
+        await setUserPlan(email, "free")
+      }
+      break
+    }
+
+    // Abonnement résilié (depuis le portail Stripe ou en fin de période)
+    case "customer.subscription.deleted": {
+      const sub = event.data.object as Stripe.Subscription
+      const email = await getEmailFromCustomer(sub.customer as string)
+      if (email) await setUserPlan(email, "free")
+      break
+    }
+
   }
 
   return Response.json({ received: true })

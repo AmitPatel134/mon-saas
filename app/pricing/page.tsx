@@ -4,12 +4,21 @@ import { supabase } from "@/lib/supabase"
 
 export default function PricingPage() {
   const [email, setEmail] = useState<string | null>(null)
+  const [plan, setPlan] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setEmail(session.user.email ?? null)
+      if (session) {
+        const userEmail = session.user.email ?? null
+        setEmail(userEmail)
+        if (userEmail) {
+          fetch(`/api/plan?email=${encodeURIComponent(userEmail)}`)
+            .then(r => r.json())
+            .then(d => setPlan(d.plan ?? "free"))
+        }
+      }
       setReady(true)
     })
   }, [])
@@ -53,7 +62,7 @@ export default function PricingPage() {
 
       {/* PRICING CARDS */}
       <div className="bg-gray-100 px-10 py-16">
-        <div className="grid grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-2 gap-6 max-w-3xl mx-auto">
 
           {/* FREE */}
           <div className="p-8 rounded-2xl bg-white border border-gray-200 flex flex-col gap-6">
@@ -63,15 +72,17 @@ export default function PricingPage() {
               <p className="text-sm text-gray-400 font-medium mt-1">Pour toujours</p>
             </div>
             <ul className="flex flex-col gap-3 text-sm text-gray-600 font-medium flex-1">
-              {["100 exécutions / mois", "3 workflows actifs", "Intégrations de base"].map(f => (
+              {["3 mandats", "5 prospects", "5 générations IA / mois", "Tous les types de génération", "Matching mandats / prospects"].map(f => (
                 <li key={f} className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-300 shrink-0"></span>{f}
                 </li>
               ))}
             </ul>
-            <a href="/login" className="text-center py-3 border-2 border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-fuchsia-400 hover:text-fuchsia-600 transition-colors">
-              Commencer gratuitement
-            </a>
+            {plan !== "pro" && (
+              <a href="/login" className="text-center py-3 border-2 border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-fuchsia-400 hover:text-fuchsia-600 transition-colors">
+                {email ? "Mon compte" : "Commencer gratuitement"}
+              </a>
+            )}
           </div>
 
           {/* PRO */}
@@ -87,39 +98,28 @@ export default function PricingPage() {
               <p className="text-sm text-fuchsia-200 font-medium mt-1">par mois · sans engagement</p>
             </div>
             <ul className="relative z-10 flex flex-col gap-3 text-sm text-fuchsia-100 font-medium flex-1">
-              {["10 000 exécutions / mois", "Workflows illimités", "200+ intégrations", "Support prioritaire", "API access complet"].map(f => (
+              {["Mandats illimités", "Prospects illimités", "Générations IA illimitées", "Matching mandats / prospects", "6 types de génération (annonces, emails, SMS, réseaux, visites, vendeurs)", "5 portails (SeLoger, Leboncoin, Logic-Immo, PAP, Bien'ici)", "Support prioritaire"].map(f => (
                 <li key={f} className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>{f}
                 </li>
               ))}
             </ul>
-            <button
-              onClick={handleSubscribe}
-              disabled={loading}
-              className="relative z-10 py-3 bg-white text-fuchsia-700 font-bold rounded-full text-sm hover:bg-fuchsia-50 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Chargement..." : email ? "S'abonner maintenant →" : "Se connecter pour s'abonner →"}
-            </button>
-            {email && <p className="relative z-10 text-xs text-fuchsia-200 font-medium text-center -mt-3">Connecté : {email}</p>}
-          </div>
-
-          {/* ENTERPRISE */}
-          <div className="p-8 rounded-2xl bg-gray-900 text-white flex flex-col gap-6">
-            <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Enterprise</p>
-              <p className="text-5xl font-extrabold">Sur devis</p>
-              <p className="text-sm text-gray-400 font-medium mt-1">Volume & besoins custom</p>
-            </div>
-            <ul className="flex flex-col gap-3 text-sm text-gray-300 font-medium flex-1">
-              {["Exécutions illimitées", "SLA garanti 99.99%", "SSO / SAML", "Account manager dédié", "Déploiement on-premise"].map(f => (
-                <li key={f} className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 shrink-0"></span>{f}
-                </li>
-              ))}
-            </ul>
-            <button className="py-3 border-2 border-white/20 text-white rounded-full text-sm font-bold hover:border-white/50 transition-colors">
-              Contacter les ventes
-            </button>
+            {plan === "pro" ? (
+              <a href="/dashboard" className="relative z-10 text-center py-3 bg-white text-fuchsia-700 font-bold rounded-full text-sm hover:bg-fuchsia-50 transition-colors">
+                Mon compte
+              </a>
+            ) : (
+              <>
+                <button
+                  onClick={handleSubscribe}
+                  disabled={loading}
+                  className="relative z-10 py-3 bg-white text-fuchsia-700 font-bold rounded-full text-sm hover:bg-fuchsia-50 transition-colors disabled:opacity-50"
+                >
+                  {loading ? "Chargement..." : email ? "S'abonner maintenant →" : "Se connecter pour s'abonner →"}
+                </button>
+                {email && <p className="relative z-10 text-xs text-fuchsia-200 font-medium text-center -mt-3">Connecté : {email}</p>}
+              </>
+            )}
           </div>
 
         </div>
@@ -130,8 +130,8 @@ export default function PricingPage() {
           <div className="flex flex-col gap-4">
             {[
               { q: "Puis-je annuler à tout moment ?", a: "Oui, sans engagement. L'annulation prend effet à la fin de la période en cours." },
-              { q: "Y a-t-il une période d'essai ?", a: "Oui, 14 jours gratuits sur le plan Pro. Aucune carte bancaire requise." },
-              { q: "Comment fonctionne le plan gratuit ?", a: "Le plan gratuit est illimité dans le temps avec 100 exécutions par mois." },
+              { q: "Que se passe-t-il quand j'atteins les limites du plan gratuit ?", a: "Tu ne pourras plus créer de nouveaux mandats, prospects ou générations jusqu'à la fin du mois. Tu peux passer en Pro à tout moment pour débloquer les limites." },
+              { q: "Mes données sont-elles sécurisées ?", a: "Oui. Tes données sont stockées sur des serveurs sécurisés (Supabase / PostgreSQL) et ne sont jamais partagées avec des tiers." },
             ].map(item => (
               <div key={item.q} className="p-5 bg-white border border-gray-200 rounded-2xl">
                 <p className="font-bold text-sm text-gray-900 mb-2">{item.q}</p>
