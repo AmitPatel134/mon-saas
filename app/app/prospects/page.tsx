@@ -168,17 +168,10 @@ export default function ProspectsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* NAVBAR */}
-      <nav className="bg-white border-b border-gray-200 px-8 py-4 flex items-center gap-4 sticky top-0 z-50">
-        <a href="/app" className="text-gray-400 hover:text-gray-900 transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </a>
-        <span className="text-gray-300">|</span>
-        <a href="/" className="font-extrabold text-gray-900 text-lg tracking-tight">Cléo</a>
-        <span className="text-sm font-semibold text-gray-400">/ Prospects</span>
-        <div className="ml-auto">
+      {/* TOPBAR */}
+      <nav className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-40">
+        <h1 className="text-lg font-extrabold text-gray-900">Prospects</h1>
+        <div>
           {planLimit !== null && prospects.length >= planLimit ? (
             <a href="/pricing" className="bg-indigo-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors">
               Passer au Pro →

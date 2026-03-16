@@ -80,15 +80,6 @@ export default function AppPage() {
   return (
     <div className="min-h-screen bg-gray-950 text-white">
 
-      {/* NAVBAR */}
-      <nav className="border-b border-white/10 px-10 py-4 flex items-center justify-between sticky top-0 z-50 bg-gray-950">
-        <a href="/" className="font-extrabold text-lg tracking-tight text-white">Cléo</a>
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-500">{email}</span>
-          <a href="/dashboard" className="text-sm font-semibold text-gray-400 hover:text-white transition-colors">Dashboard</a>
-        </div>
-      </nav>
-
       {rappels.length > 0 && (
         <a href="/app/prospects" className="flex items-center gap-3 bg-amber-50 border-b border-amber-200 px-10 py-3 hover:bg-amber-100 transition-colors">
           <span className="text-base">🔔</span>
