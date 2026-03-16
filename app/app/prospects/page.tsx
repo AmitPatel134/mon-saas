@@ -69,7 +69,25 @@ export default function ProspectsPage() {
 
   if (!ready) return null
 
-  const filtered = prospects.filter(p => filtre === "tous" || p.statut === filtre)
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
+  const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(tomorrowStart.getDate() + 1)
+
+  function getRappelStatus(rappel?: string | null): "overdue" | "today" | null {
+    if (!rappel) return null
+    const d = new Date(rappel)
+    if (d < todayStart) return "overdue"
+    if (d < tomorrowStart) return "today"
+    return null
+  }
+
+  const filtered = prospects
+    .filter(p => filtre === "tous" || p.statut === filtre)
+    .sort((a, b) => {
+      const ra = getRappelStatus(a.rappel)
+      const rb = getRappelStatus(b.rappel)
+      const priority = (r: "overdue" | "today" | null) => r === "overdue" ? 0 : r === "today" ? 1 : 2
+      return priority(ra) - priority(rb)
+    })
 
   // --- CRÉATION ---
   async function handleCreate() {
@@ -219,11 +237,22 @@ export default function ProspectsPage() {
                 </div>
                 <p className={`text-xs font-medium truncate ${detail?.id === p.id ? "text-indigo-200" : "text-gray-500"}`}>{p.criteres}</p>
                 <p className={`text-xs font-bold mt-1 ${detail?.id === p.id ? "text-indigo-200" : "text-indigo-600"}`}>{p.budget.toLocaleString("fr-FR")} €</p>
-                {p.rappel && (
-                  <p className={`text-xs mt-2 font-medium ${detail?.id === p.id ? "text-indigo-200" : "text-amber-600"}`}>
-                    🔔 Rappel : {new Date(p.rappel).toLocaleDateString("fr-FR")}
-                  </p>
-                )}
+                {p.rappel && (() => {
+                  const rs = getRappelStatus(p.rappel)
+                  const isSelected = detail?.id === p.id
+                  return (
+                    <p className={`text-xs mt-2 font-bold ${
+                      isSelected ? "text-indigo-200" :
+                      rs === "overdue" ? "text-red-600" :
+                      rs === "today" ? "text-amber-600" : "text-gray-400"
+                    }`}>
+                      {rs === "overdue" ? "🔴" : rs === "today" ? "🔔" : "📅"} {
+                        rs === "overdue" ? "En retard · " :
+                        rs === "today" ? "Aujourd'hui · " : ""
+                      }{new Date(p.rappel).toLocaleDateString("fr-FR")}
+                    </p>
+                  )
+                })()}
               </button>
             ))}
           </div>

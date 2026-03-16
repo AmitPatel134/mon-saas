@@ -17,7 +17,7 @@ interface Prospect {
   nom: string
   budget: number
   statut: string
-  rappel?: string
+  rappel?: string | null
   criteres?: string
 }
 
@@ -31,6 +31,7 @@ interface DashboardData {
   mandats: Mandat[]
   prospects: Prospect[]
   dernieresGenerations: Generation[]
+  rappels: Prospect[]
   stats: { mandatsDisponibles: number; prospectsChauds: number; generationsAujourdhui: number }
 }
 
@@ -54,6 +55,7 @@ export default function AppPage() {
     mandats: [],
     prospects: [],
     dernieresGenerations: [],
+    rappels: [],
     stats: { mandatsDisponibles: 0, prospectsChauds: 0, generationsAujourdhui: 0 },
   })
 
@@ -70,7 +72,10 @@ export default function AppPage() {
 
   if (!ready) return null
 
-  const { mandats, prospects, dernieresGenerations, stats } = data
+  const { mandats, prospects, dernieresGenerations, rappels, stats } = data
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -83,6 +88,19 @@ export default function AppPage() {
           <a href="/dashboard" className="text-sm font-semibold text-gray-400 hover:text-white transition-colors">Dashboard</a>
         </div>
       </nav>
+
+      {rappels.length > 0 && (
+        <a href="/app/prospects" className="flex items-center gap-3 bg-amber-50 border-b border-amber-200 px-10 py-3 hover:bg-amber-100 transition-colors">
+          <span className="text-base">🔔</span>
+          <p className="text-sm font-bold text-amber-800">
+            {rappels.length === 1
+              ? `${rappels[0].nom} — rappel prévu aujourd'hui`
+              : `${rappels.length} prospects à rappeler — ${rappels.slice(0, 3).map(r => r.nom).join(", ")}${rappels.length > 3 ? "…" : ""}`
+            }
+          </p>
+          <span className="ml-auto text-xs font-bold text-amber-600">Voir →</span>
+        </a>
+      )}
 
       <div className="max-w-5xl mx-auto px-6 py-10">
 
