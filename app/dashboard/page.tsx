@@ -30,7 +30,7 @@ export default function DashboardPage() {
         window.history.replaceState({}, "", "/dashboard")
       }
 
-      const res = await fetch(`/api/users?email=${userEmail}`)
+      const res = await fetch(`/api/users?email=${encodeURIComponent(userEmail)}`)
       const data = await res.json()
       const user = Array.isArray(data) ? data[0] : data
       if (user?.plan) setPlan(user.plan)
