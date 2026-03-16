@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import LoadingScreen from "@/components/LoadingScreen"
 
 interface Mandat {
   id: string
@@ -70,7 +71,7 @@ export default function AppPage() {
     })
   }, [])
 
-  if (!ready) return null
+  if (!ready) return <LoadingScreen />
 
   const { mandats, prospects, dernieresGenerations, rappels, stats } = data
 

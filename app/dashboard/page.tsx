@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import LoadingScreen from "@/components/LoadingScreen"
 
 export default function DashboardPage() {
   const [email, setEmail] = useState<string | null>(null)
@@ -38,7 +39,7 @@ export default function DashboardPage() {
     getUser()
   }, [])
 
-  if (!ready) return null
+  if (!ready) return <LoadingScreen />
 
   async function handleLogout() {
     await supabase.auth.signOut()

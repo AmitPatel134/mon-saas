@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
 
 type StatutProspect = "nouveau" | "en-recherche" | "chaud" | "signé"
@@ -67,7 +68,7 @@ export default function ProspectsPage() {
     })
   }, [])
 
-  if (!ready) return null
+  if (!ready) return <LoadingScreen />
 
   const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
   const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(tomorrowStart.getDate() + 1)

@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
+import LoadingScreen from "@/components/LoadingScreen"
 
 export default function PricingPage() {
   const [email, setEmail] = useState<string | null>(null)
@@ -23,7 +24,7 @@ export default function PricingPage() {
     })
   }, [])
 
-  if (!ready) return null
+  if (!ready) return <LoadingScreen />
 
   async function handleSubscribe() {
     if (!email) { window.location.href = "/login"; return }

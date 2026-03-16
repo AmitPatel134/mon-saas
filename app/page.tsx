@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import LoadingScreen from "@/components/LoadingScreen"
 
 export default function HomePage() {
   const [email, setEmail] = useState<string | null>(null)
@@ -29,7 +30,7 @@ export default function HomePage() {
     setConfirm(false)
   }
 
-  if (!ready) return null
+  if (!ready) return <LoadingScreen />
 
   const ctaHref = email ? "/app" : "/login"
 

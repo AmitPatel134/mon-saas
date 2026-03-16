@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import LoadingScreen from "@/components/LoadingScreen"
 
 interface Mandat {
   id: string
@@ -83,7 +84,7 @@ export default function MatchingPage() {
     setLoading(false)
   }
 
-  if (!ready) return null
+  if (!ready) return <LoadingScreen />
 
   const mandatsFiltres = filtre === "disponible"
     ? mandats.filter(m => m.statut === "disponible")

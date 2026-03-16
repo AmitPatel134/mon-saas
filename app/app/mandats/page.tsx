@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
 
 type Statut = "disponible" | "sous-compromis" | "vendu"
@@ -67,7 +68,7 @@ export default function MandatsPage() {
     })
   }, [])
 
-  if (!ready) return null
+  if (!ready) return <LoadingScreen />
 
   const filtered = mandats.filter(m => {
     const matchFiltre = filtre === "tous" || m.statut === filtre

@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
 
 const PORTAILS_ANNONCE = ["SeLoger", "Leboncoin", "Logic-Immo", "PAP", "Bien'ici"]
@@ -146,7 +147,7 @@ export default function GenerationPage() {
     })
   }, [])
 
-  if (!ready) return null
+  if (!ready) return <LoadingScreen />
 
   const mandat = mandats.find(m => m.id === selectedMandat)
   const portailForMode = mode === "annonce" ? selectedPortail : mode === "social" ? selectedReseau : null
