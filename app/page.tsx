@@ -31,14 +31,14 @@ export default function HomePage() {
 
   if (!ready) return null
 
-  const ctaHref = email ? "/dashboard" : "/login"
+  const ctaHref = email ? "/app" : "/login"
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
 
       {/* NAVBAR */}
       <nav className="flex items-center justify-between px-10 py-5 border-b border-gray-200 bg-white sticky top-0 z-50">
-        <a href={email ? "/dashboard" : "/"} className="text-lg font-extrabold tracking-tight text-gray-900">Cléo</a>
+        <a href={email ? "/app" : "/"} className="text-lg font-extrabold tracking-tight text-gray-900">Cléo</a>
         <div className="flex items-center gap-6 text-sm font-semibold text-gray-500">
           {email && (
             <a href="/app" className="bg-gray-950 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2">
