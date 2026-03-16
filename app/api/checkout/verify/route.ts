@@ -1,6 +1,5 @@
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
-import Stripe from "stripe"
 
 export async function POST(request: Request) {
   const { sessionId } = await request.json()
@@ -12,11 +11,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Paiement non confirmé" }, { status: 400 })
   }
 
-  let email = session.customer_email
-  if (!email && session.customer) {
-    const customer = await stripe.customers.retrieve(session.customer as string)
-    if (!customer.deleted) email = (customer as Stripe.Customer).email
-  }
+  const email = session.customer_email
   if (!email) return Response.json({ error: "Email introuvable" }, { status: 400 })
 
   await prisma.user.upsert({
