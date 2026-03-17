@@ -32,7 +32,7 @@ export default function HomePage() {
 
   if (!ready) return <LoadingScreen />
 
-  const ctaHref = email ? "/app/profil" : "/login"
+  const ctaHref = email ? "/app" : "/login"
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
