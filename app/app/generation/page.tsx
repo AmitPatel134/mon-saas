@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import { authFetch } from "@/lib/authFetch"
 import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
 import Toast from "@/components/Toast"
@@ -99,7 +100,6 @@ const FILTRES = [
 
 export default function GenerationPage() {
   const [ready, setReady] = useState(false)
-  const [token, setToken] = useState("")
   const [userName, setUserName] = useState("")
   const [mandats, setMandats] = useState<Mandat[]>([])
   const [planLimit, setPlanLimit] = useState<number | null>(null)
@@ -144,14 +144,11 @@ export default function GenerationPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const tok = session.access_token
-      setToken(tok)
-      const headers = { Authorization: `Bearer ${tok}` }
       Promise.all([
-        fetch("/api/mandats", { headers }).then(r => r.json()),
-        fetch("/api/plan", { headers }).then(r => r.json()),
-        fetch("/api/generations", { headers }).then(r => r.json()),
-        fetch("/api/users", { headers }).then(r => r.json()),
+        authFetch("/api/mandats").then(r => r.json()),
+        authFetch("/api/plan").then(r => r.json()),
+        authFetch("/api/generations").then(r => r.json()),
+        authFetch("/api/users").then(r => r.json()),
       ]).then(([mandatsData, planData, genData, userData]) => {
         const mList = Array.isArray(mandatsData) ? mandatsData : []
         setMandats(mList)
@@ -191,9 +188,9 @@ export default function GenerationPage() {
     setError("")
     setSelected(null)
     try {
-      const res = await fetch("/api/generate", {
+      const res = await authFetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mandat,
           mode,
@@ -217,7 +214,7 @@ export default function GenerationPage() {
       const portailLabel = portailForMode ? ` · ${portailForMode}` : ""
       setResultLabel(`${modeLabel}${portailLabel}`)
       setGenCount(c => c + 1)
-      const updated = await fetch("/api/generations", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
+      const updated = await authFetch("/api/generations").then(r => r.json())
       setHistorique(Array.isArray(updated) ? updated : [])
     } catch {
       setError("Une erreur est survenue.")
@@ -227,13 +224,13 @@ export default function GenerationPage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch(`/api/generations/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
+    await authFetch(`/api/generations/${id}`, { method: "DELETE" })
     setHistorique(prev => prev.filter(h => h.id !== id))
     if (selected?.id === id) { setSelected(null); setResult(""); setResultLabel("") }
   }
 
   async function handleBulkDelete() {
-    await Promise.all([...selectedGens].map(id => fetch(`/api/generations/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })))
+    await Promise.all([...selectedGens].map(id => authFetch(`/api/generations/${id}`, { method: "DELETE" })))
     setHistorique(prev => prev.filter(h => !selectedGens.has(h.id)))
     if (selected && selectedGens.has(selected.id)) { setSelected(null); setResult(""); setResultLabel("") }
     showToast(`${selectedGens.size} génération${selectedGens.size > 1 ? "s" : ""} supprimée${selectedGens.size > 1 ? "s" : ""}`)
@@ -270,10 +267,10 @@ export default function GenerationPage() {
       <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col gap-6">
 
         {/* GÉNÉRATEUR */}
-        <div className="grid grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
 
           {/* PANNEAU CONFIG */}
-          <div className="col-span-4 flex flex-col gap-4">
+          <div className="col-span-1 md:col-span-4 flex flex-col gap-4">
 
             {/* Type de génération */}
             <div className="bg-white rounded-2xl border border-gray-200 p-4">
@@ -480,7 +477,7 @@ export default function GenerationPage() {
           </div>
 
           {/* PANNEAU RÉSULTAT */}
-          <div className="col-span-8">
+          <div className="col-span-1 md:col-span-8">
             <div className="bg-white rounded-2xl border border-gray-200 p-6 min-h-96 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">

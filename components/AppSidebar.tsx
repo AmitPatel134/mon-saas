@@ -62,6 +62,23 @@ const navItems = [
   },
 ]
 
+const mobileNavItems = [
+  navItems[0], // Dashboard
+  navItems[1], // Mandats
+  navItems[2], // Prospects
+  navItems[4], // Matching
+  {
+    href: "/app/profil",
+    label: "Profil",
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+    ),
+    exact: false,
+  },
+]
+
 export default function AppSidebar() {
   const pathname = usePathname()
   const [email, setEmail] = useState<string | null>(null)
@@ -72,61 +89,83 @@ export default function AppSidebar() {
     })
   }, [])
 
-  function isActive(item: typeof navItems[0]) {
+  function isActive(item: { href: string; exact?: boolean }) {
     return item.exact ? pathname === item.href : pathname.startsWith(item.href)
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-52 bg-white border-r border-gray-200 flex flex-col z-50">
+    <>
+      {/* ── DESKTOP SIDEBAR ── */}
+      <aside className="hidden md:flex fixed left-0 top-0 h-screen w-52 bg-white border-r border-gray-200 flex-col z-50">
 
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-gray-100">
-        <a href="/app" className="font-extrabold text-lg tracking-tight text-gray-900">Cléo</a>
-        <p className="text-xs text-gray-400 font-medium mt-0.5">Espace agent</p>
-      </div>
+        {/* Logo */}
+        <div className="px-5 py-5 border-b border-gray-100">
+          <a href="/app" className="font-extrabold text-lg tracking-tight text-gray-900">Cléo</a>
+          <p className="text-xs text-gray-400 font-medium mt-0.5">Espace agent</p>
+        </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
-        {navItems.map(item => {
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
+          {navItems.map(item => {
+            const active = isActive(item)
+            return (
+              <a
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  active
+                    ? "bg-fuchsia-50 text-fuchsia-700"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                <span className={active ? "text-fuchsia-600" : "text-gray-400"}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </a>
+            )
+          })}
+        </nav>
+
+        {/* Bottom */}
+        <div className="px-3 py-4 border-t border-gray-100 flex flex-col gap-1">
+          <a href="/app/profil" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/app/profil" ? "bg-fuchsia-50 text-fuchsia-700" : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"}`}>
+            <svg className={`w-4 h-4 ${pathname === "/app/profil" ? "text-fuchsia-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Profil
+          </a>
+          <a href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all">
+            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Accueil
+          </a>
+          {email && (
+            <p className="px-3 text-xs text-gray-400 font-medium truncate">{email}</p>
+          )}
+        </div>
+
+      </aside>
+
+      {/* ── MOBILE BOTTOM NAV ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex items-center">
+        {mobileNavItems.map(item => {
           const active = isActive(item)
           return (
             <a
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                active
-                  ? "bg-fuchsia-50 text-fuchsia-700"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+              className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors ${
+                active ? "text-fuchsia-600" : "text-gray-400"
               }`}
             >
-              <span className={active ? "text-fuchsia-600" : "text-gray-400"}>
-                {item.icon}
-              </span>
-              {item.label}
+              {item.icon}
+              <span className="text-[10px] font-semibold">{item.label}</span>
             </a>
           )
         })}
       </nav>
-
-      {/* Bottom */}
-      <div className="px-3 py-4 border-t border-gray-100 flex flex-col gap-1">
-        <a href="/app/profil" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/app/profil" ? "bg-fuchsia-50 text-fuchsia-700" : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"}`}>
-          <svg className={`w-4 h-4 ${pathname === "/app/profil" ? "text-fuchsia-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          Profil
-        </a>
-        <a href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all">
-          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Accueil
-        </a>
-        {email && (
-          <p className="px-3 text-xs text-gray-400 font-medium truncate">{email}</p>
-        )}
-      </div>
-
-    </aside>
+    </>
   )
 }

@@ -1,6 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import { authFetch } from "@/lib/authFetch"
+import * as XLSX from "xlsx"
 import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
 import Toast from "@/components/Toast"
@@ -34,7 +36,6 @@ function normalize(p: Prospect & { rappel?: string | null }) {
 
 export default function ProspectsPage() {
   const [ready, setReady] = useState(false)
-  const [token, setToken] = useState("")
   const [prospects, setProspects] = useState<Prospect[]>([])
   const [planLimit, setPlanLimit] = useState<number | null>(null)
   const [filtre, setFiltre] = useState<StatutProspect | "tous">("tous")
@@ -75,12 +76,9 @@ export default function ProspectsPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const tok = session.access_token
-      setToken(tok)
-      const headers = { Authorization: `Bearer ${tok}` }
       Promise.all([
-        fetch("/api/prospects", { headers }).then(r => r.json()),
-        fetch("/api/plan", { headers }).then(r => r.json()),
+        authFetch("/api/prospects").then(r => r.json()),
+        authFetch("/api/plan").then(r => r.json()),
       ]).then(([prospectsData, planData]) => {
         setProspects(Array.isArray(prospectsData) ? prospectsData.map(normalize) : [])
         setPlanLimit(planData.limits?.prospects ?? null)
@@ -115,9 +113,9 @@ export default function ProspectsPage() {
   async function handleCreate() {
     if (!createForm.nom) return
     setCreating(true)
-    const res = await fetch("/api/prospects", {
+    const res = await authFetch("/api/prospects", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...createForm,
         rappel: createForm.rappel ? new Date(createForm.rappel).toISOString() : null,
@@ -147,9 +145,9 @@ export default function ProspectsPage() {
   async function handleEdit() {
     if (!editForm || !editForm.nom) return
     setEditing(true)
-    const res = await fetch(`/api/prospects/${editForm.id}`, {
+    const res = await authFetch(`/api/prospects/${editForm.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...editForm,
         rappel: editForm.rappel ? new Date(editForm.rappel).toISOString() : null,
@@ -167,7 +165,7 @@ export default function ProspectsPage() {
 
   // --- SUPPRESSION ---
   async function handleDelete(id: string) {
-    await fetch(`/api/prospects/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
+    await authFetch(`/api/prospects/${id}`, { method: "DELETE" })
     setProspects(ps => ps.filter(p => p.id !== id))
     setConfirmDelete(null)
     if (detail?.id === id) setDetail(null)
@@ -175,7 +173,7 @@ export default function ProspectsPage() {
   }
 
   async function handleBulkDelete() {
-    await Promise.all([...selectedProspects].map(id => fetch(`/api/prospects/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })))
+    await Promise.all([...selectedProspects].map(id => authFetch(`/api/prospects/${id}`, { method: "DELETE" })))
     setProspects(ps => ps.filter(p => !selectedProspects.has(p.id)))
     if (detail && selectedProspects.has(detail.id)) setDetail(null)
     showToast(`${selectedProspects.size} prospect${selectedProspects.size > 1 ? "s" : ""} supprimé${selectedProspects.size > 1 ? "s" : ""}`)
@@ -191,7 +189,7 @@ export default function ProspectsPage() {
   async function updateStatut(id: string, statut: StatutProspect) {
     const prospect = prospects.find(p => p.id === id)
     if (!prospect) return
-    const res = await fetch(`/api/prospects/${id}`, {
+    const res = await authFetch(`/api/prospects/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...prospect, statut, rappel: prospect.rappel ? new Date(prospect.rappel).toISOString() : null }),
@@ -202,6 +200,23 @@ export default function ProspectsPage() {
     if (detail?.id === id) setDetail(norm)
   }
 
+  function handleExport() {
+    const exportData = filtered.map(p => ({
+      Nom: p.nom,
+      Téléphone: p.telephone ?? "",
+      Email: p.email ?? "",
+      "Budget (€)": p.budget,
+      Critères: p.criteres ?? "",
+      Statut: p.statut,
+      Rappel: p.rappel ? new Date(p.rappel).toLocaleDateString("fr-FR") : "",
+      "Biens visités": p.biensVisites?.join(", ") ?? "",
+    }))
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Prospects")
+    XLSX.writeFile(wb, `prospects_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
 
@@ -209,6 +224,15 @@ export default function ProspectsPage() {
       <nav className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-40">
         <h1 className="text-lg font-extrabold text-gray-900">Prospects</h1>
         <div className="flex items-center gap-3">
+          {prospects.length > 0 && (
+            <button onClick={handleExport}
+              className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 font-bold text-sm px-4 py-2.5 rounded-full hover:bg-gray-50 transition-colors">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Exporter
+            </button>
+          )}
           {selectedProspects.size > 0 && (
             <button onClick={() => setConfirmBulk(true)}
               className="bg-red-500 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-red-600 transition-colors">

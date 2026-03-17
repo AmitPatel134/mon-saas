@@ -1,12 +1,12 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import { authFetch } from "@/lib/authFetch"
 import LoadingScreen from "@/components/LoadingScreen"
 import Toast from "@/components/Toast"
 
 export default function ProfilPage() {
   const [ready, setReady] = useState(false)
-  const [token, setToken] = useState("")
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
   const [plan, setPlan] = useState("free")
@@ -27,9 +27,7 @@ export default function ProfilPage() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
       setEmail(session.user.email ?? "")
-      const tok = session.access_token
-      setToken(tok)
-      const user = await fetch("/api/users", { headers: { Authorization: `Bearer ${tok}` } }).then(r => r.json())
+      const user = await authFetch("/api/users").then(r => r.json())
       if (user?.name) setName(user.name)
       if (user?.plan) setPlan(user.plan)
       setReady(true)
@@ -40,9 +38,9 @@ export default function ProfilPage() {
     e.preventDefault()
     if (!name.trim()) return
     setSavingName(true)
-    const res = await fetch("/api/users", {
+    const res = await authFetch("/api/users", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: name.trim() }),
     })
     setSavingName(false)
@@ -70,9 +68,9 @@ export default function ProfilPage() {
 
   async function handleBillingPortal() {
     setBillingLoading(true)
-    const res = await fetch("/api/billing-portal", {
+    const res = await authFetch("/api/billing-portal", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json" },
     })
     const { url, error } = await res.json()
     setBillingLoading(false)

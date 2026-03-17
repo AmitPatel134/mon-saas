@@ -1,6 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import { authFetch } from "@/lib/authFetch"
+import * as XLSX from "xlsx"
 import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
 import Toast from "@/components/Toast"
@@ -43,7 +45,6 @@ const EMPTY: Mandat = {
 
 export default function MandatsPage() {
   const [ready, setReady] = useState(false)
-  const [token, setToken] = useState("")
   const [mandats, setMandats] = useState<Mandat[]>([])
   const [filtre, setFiltre] = useState<Statut | "tous">("tous")
   const [search, setSearch] = useState("")
@@ -74,12 +75,9 @@ export default function MandatsPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const tok = session.access_token
-      setToken(tok)
-      const headers = { Authorization: `Bearer ${tok}` }
       Promise.all([
-        fetch("/api/mandats", { headers }).then(r => r.json()),
-        fetch("/api/plan", { headers }).then(r => r.json()),
+        authFetch("/api/mandats").then(r => r.json()),
+        authFetch("/api/plan").then(r => r.json()),
       ]).then(([mandatsData, planData]) => {
         setMandats(Array.isArray(mandatsData) ? mandatsData : [])
         setPlanLimit(planData.limits?.mandats ?? null)
@@ -100,17 +98,17 @@ export default function MandatsPage() {
     if (!form.adresse || !form.ville) return
     setSaving(true)
     if (form.id) {
-      const res = await fetch(`/api/mandats/${form.id}`, {
+      const res = await authFetch(`/api/mandats/${form.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       })
       const updated = await res.json()
       setMandats(prev => prev.map(m => m.id === form.id ? updated : m))
     } else {
-      const res = await fetch("/api/mandats", {
+      const res = await authFetch("/api/mandats", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       })
       if (res.status === 403) {
@@ -129,14 +127,14 @@ export default function MandatsPage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch(`/api/mandats/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
+    await authFetch(`/api/mandats/${id}`, { method: "DELETE" })
     setMandats(prev => prev.filter(m => m.id !== id))
     setConfirmDelete(null)
     showToast("Mandat supprimé")
   }
 
   async function handleBulkDelete() {
-    await Promise.all([...selected].map(id => fetch(`/api/mandats/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })))
+    await Promise.all([...selected].map(id => authFetch(`/api/mandats/${id}`, { method: "DELETE" })))
     setMandats(prev => prev.filter(m => !selected.has(m.id)))
     showToast(`${selected.size} mandat${selected.size > 1 ? "s" : ""} supprimé${selected.size > 1 ? "s" : ""}`)
     setSelected(new Set())
@@ -145,6 +143,34 @@ export default function MandatsPage() {
 
   function toggleSelect(id: string) {
     setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  }
+
+  function handleExport() {
+    const exportData = filtered.map(m => ({
+      Type: m.type,
+      Adresse: m.adresse,
+      Ville: m.ville,
+      "Surface (m²)": m.surface,
+      Pièces: m.pieces,
+      "Prix (€)": m.prix,
+      Statut: m.statut,
+      DPE: m.dpe ?? "",
+      Étage: m.etage ?? "",
+      Exposition: m.exposition ?? "",
+      Chauffage: m.chauffage ?? "",
+      État: m.etat ?? "",
+      "Charges (€/mois)": m.charges ?? "",
+      "Année construction": m.anneeConstruction ?? "",
+      Parking: m.parking ? "Oui" : "Non",
+      Cave: m.cave ? "Oui" : "Non",
+      Balcon: m.balcon ? "Oui" : "Non",
+      Ascenseur: m.ascenseur ? "Oui" : "Non",
+      Description: m.description ?? "",
+    }))
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Mandats")
+    XLSX.writeFile(wb, `mandats_${new Date().toISOString().slice(0, 10)}.xlsx`)
   }
 
   const f = (field: keyof Mandat) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -160,6 +186,15 @@ export default function MandatsPage() {
       <nav className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-40">
         <h1 className="text-lg font-extrabold text-gray-900">Mandats</h1>
         <div className="flex items-center gap-3">
+          {mandats.length > 0 && (
+            <button onClick={handleExport}
+              className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 font-bold text-sm px-4 py-2.5 rounded-full hover:bg-gray-50 transition-colors">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Exporter
+            </button>
+          )}
           {selected.size > 0 && (
             <button onClick={() => setConfirmBulk(true)}
               className="bg-red-500 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-red-600 transition-colors">

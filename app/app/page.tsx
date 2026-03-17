@@ -1,7 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import { authFetch } from "@/lib/authFetch"
 import LoadingScreen from "@/components/LoadingScreen"
+import OnboardingModal from "@/components/OnboardingModal"
 
 interface Mandat {
   id: string
@@ -59,17 +61,32 @@ export default function AppPage() {
     rappels: [],
     stats: { mandatsDisponibles: 0, prospectsChauds: 0, generationsAujourdhui: 0 },
   })
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
       setEmail(session.user.email ?? "")
-      const token = session.access_token
-      fetch("/api/dashboard", { headers: { Authorization: `Bearer ${token}` } })
+      authFetch("/api/dashboard")
         .then(r => r.json())
-        .then(d => { setData(d); setReady(true) })
+        .then(d => {
+          setData(d)
+          setReady(true)
+          if (
+            d.mandats?.length === 0 &&
+            d.prospects?.length === 0 &&
+            !localStorage.getItem("cleo_onboarded")
+          ) {
+            setShowOnboarding(true)
+          }
+        })
     })
   }, [])
+
+  function handleCloseOnboarding() {
+    localStorage.setItem("cleo_onboarded", "1")
+    setShowOnboarding(false)
+  }
 
   if (!ready) return <LoadingScreen />
 
@@ -80,6 +97,7 @@ export default function AppPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
+      {showOnboarding && <OnboardingModal onClose={handleCloseOnboarding} />}
 
       {rappels.length > 0 && (
         <a href="/app/prospects" className="flex items-center gap-3 bg-amber-50 border-b border-amber-200 px-10 py-3 hover:bg-amber-100 transition-colors">
@@ -117,10 +135,10 @@ export default function AppPage() {
           </div>
         </a>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
           {/* MANDATS */}
-          <a href="/app/mandats" className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-fuchsia-500/40 hover:bg-white/[0.07] transition-all flex flex-col min-h-[520px]">
+          <a href="/app/mandats" className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-fuchsia-500/40 hover:bg-white/[0.07] transition-all flex flex-col">
             {/* Header stat */}
             <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/5">
               <div className="flex items-center gap-2.5">
@@ -162,7 +180,7 @@ export default function AppPage() {
           </a>
 
           {/* PROSPECTS */}
-          <a href="/app/prospects" className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-indigo-500/40 hover:bg-white/[0.07] transition-all flex flex-col min-h-[520px]">
+          <a href="/app/prospects" className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-indigo-500/40 hover:bg-white/[0.07] transition-all flex flex-col">
             {/* Header stat */}
             <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/5">
               <div className="flex items-center gap-2.5">
@@ -207,7 +225,7 @@ export default function AppPage() {
           </a>
 
           {/* GÉNÉRATION */}
-          <a href="/app/generation" className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-violet-500/40 hover:bg-white/[0.07] transition-all flex flex-col min-h-[520px]">
+          <a href="/app/generation" className="group bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-violet-500/40 hover:bg-white/[0.07] transition-all flex flex-col">
             {/* Header stat */}
             <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/5">
               <div className="flex items-center gap-2.5">

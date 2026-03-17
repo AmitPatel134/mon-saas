@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import { authFetch } from "@/lib/authFetch"
 import * as XLSX from "xlsx"
 import LoadingScreen from "@/components/LoadingScreen"
 import Toast from "@/components/Toast"
@@ -10,7 +11,6 @@ type Step = "upload" | "analyzing" | "preview" | "importing" | "done"
 
 export default function ImportPage() {
   const [ready, setReady] = useState(false)
-  const [token, setToken] = useState("")
   const [step, setStep] = useState<Step>("upload")
   const [entityType, setEntityType] = useState<EntityType>("mandats")
   const [fileName, setFileName] = useState("")
@@ -28,7 +28,6 @@ export default function ImportPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      setToken(session.access_token)
       setReady(true)
     })
   }, [])
@@ -62,9 +61,9 @@ export default function ImportPage() {
     if (!rawRows.length) { showToast("Aucune donnée dans le fichier"); return }
     setStep("analyzing")
     try {
-      const res = await fetch("/api/import/analyze", {
+      const res = await authFetch("/api/import/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rows: rawRows.slice(0, 200), entityType }),
       })
       if (!res.ok) throw new Error()
@@ -83,9 +82,9 @@ export default function ImportPage() {
     const rows = mappedRows.filter((_, i) => selectedRows.has(i))
     if (!rows.length) { showToast("Aucune ligne sélectionnée"); return }
     setStep("importing")
-    const res = await fetch("/api/import/confirm", {
+    const res = await authFetch("/api/import/confirm", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ entityType, rows }),
     })
     if (res.ok) setStep("done")

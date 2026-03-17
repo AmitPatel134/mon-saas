@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+import { authFetch } from "@/lib/authFetch"
 import LoadingScreen from "@/components/LoadingScreen"
 
 interface Mandat {
@@ -76,7 +77,6 @@ function ScoreBadge({ score }: { score: number }) {
 
 export default function MatchingPage() {
   const [ready, setReady] = useState(false)
-  const [token, setToken] = useState("")
   const [mandats, setMandats] = useState<Mandat[]>([])
   const [selectedMandat, setSelectedMandat] = useState<Mandat | null>(null)
   const [matches, setMatches] = useState<ProspectMatch[]>([])
@@ -86,9 +86,7 @@ export default function MatchingPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const tok = session.access_token
-      setToken(tok)
-      fetch("/api/mandats", { headers: { Authorization: `Bearer ${tok}` } })
+      authFetch("/api/mandats")
         .then(r => r.json())
         .then(data => {
           setMandats(Array.isArray(data) ? data : [])
@@ -101,7 +99,7 @@ export default function MatchingPage() {
     setSelectedMandat(mandat)
     setLoading(true)
     setMatches([])
-    const data = await fetch(`/api/matching/${mandat.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
+    const data = await authFetch(`/api/matching/${mandat.id}`).then(r => r.json())
     setMatches(Array.isArray(data) ? data : [])
     setLoading(false)
   }
@@ -127,10 +125,10 @@ export default function MatchingPage() {
           <p className="text-sm text-gray-500 font-medium mt-1">Sélectionne un mandat pour voir les prospects qui correspondent — scoring IA sur 100.</p>
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
           {/* LISTE MANDATS */}
-          <div className="col-span-5 flex flex-col gap-3">
+          <div className="col-span-1 md:col-span-5 flex flex-col gap-3">
 
             {/* Filtre */}
             <div className="flex gap-2">
@@ -172,7 +170,7 @@ export default function MatchingPage() {
           </div>
 
           {/* RÉSULTATS MATCHING */}
-          <div className="col-span-7">
+          <div className="col-span-1 md:col-span-7">
             {!selectedMandat ? (
               <div className="bg-white rounded-2xl border border-gray-200 h-full flex items-center justify-center min-h-64">
                 <div className="text-center text-gray-300">
