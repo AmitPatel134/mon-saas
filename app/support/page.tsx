@@ -21,10 +21,11 @@ export default function SupportPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       })
-      if (!res.ok) throw new Error()
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Erreur inconnue")
       setSent(true)
-    } catch {
-      setError("Une erreur est survenue. Réessaie ou écris-nous directement.")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue.")
     } finally {
       setLoading(false)
     }
