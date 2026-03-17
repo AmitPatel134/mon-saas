@@ -32,7 +32,7 @@ export default function HomePage() {
 
   if (!ready) return <LoadingScreen />
 
-  const ctaHref = email ? "/app" : "/login"
+  const ctaHref = email ? "/app/profil" : "/login"
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
@@ -342,7 +342,7 @@ export default function HomePage() {
                 ))}
               </ul>
               {plan === "pro" ? (
-                <a href="/dashboard" className="relative z-10 text-center py-3 bg-white text-fuchsia-700 rounded-full text-sm font-bold hover:bg-fuchsia-50 transition-colors">
+                <a href="/app/profil" className="relative z-10 text-center py-3 bg-white text-fuchsia-700 rounded-full text-sm font-bold hover:bg-fuchsia-50 transition-colors">
                   Mon compte
                 </a>
               ) : (
