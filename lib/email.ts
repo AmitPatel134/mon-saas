@@ -1,12 +1,6 @@
-import nodemailer from "nodemailer"
+import { Resend } from "resend"
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-})
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function sendRappelEmail({
   to,
@@ -35,8 +29,8 @@ export async function sendRappelEmail({
     )
     .join("")
 
-  await transporter.sendMail({
-    from: `"Cléo" <${process.env.GMAIL_USER}>`,
+  await resend.emails.send({
+    from: "Cléo <noreply@cleoai.fr>",
     to,
     subject: `🔔 ${rappels.length} rappel${rappels.length > 1 ? "s" : ""} prospect${rappels.length > 1 ? "s" : ""} aujourd'hui`,
     html: `
@@ -44,7 +38,7 @@ export async function sendRappelEmail({
         <div style="background:#a21caf;padding:32px 32px 24px;">
           <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#f0abfc;letter-spacing:.1em;text-transform:uppercase;">Cléo · Rappels du jour</p>
           <h1 style="margin:0;font-size:24px;font-weight:900;color:#fff;">
-            ${rappels.length} prospect${rappels.length > 1 ? "s" : ""} à rappeler aujourd&apos;hui
+            ${rappels.length} prospect${rappels.length > 1 ? "s" : ""} à rappeler aujourd'hui
           </h1>
         </div>
         <div style="padding:32px;">
@@ -59,7 +53,7 @@ export async function sendRappelEmail({
             <tbody>${listHtml}</tbody>
           </table>
           <div style="margin-top:28px;text-align:center;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://cleo.app"}/app/prospects"
+            <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://cleoai.fr"}/app/prospects"
               style="display:inline-block;background:#a21caf;color:#fff;font-weight:700;font-size:14px;padding:14px 32px;border-radius:9999px;text-decoration:none;">
               Ouvrir mes prospects →
             </a>
@@ -67,7 +61,7 @@ export async function sendRappelEmail({
         </div>
         <div style="padding:16px 32px;background:#f9fafb;border-top:1px solid #f3f4f6;">
           <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">
-            Cléo · Vous recevez cet email car vous avez des rappels planifiés.
+            Cléo · cleoai.fr — Vous recevez cet email car vous avez des rappels planifiés.
           </p>
         </div>
       </div>
