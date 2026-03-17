@@ -52,7 +52,7 @@ export default function DashboardPage() {
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ priceId: "price_1TBGrbIRxjgeiG9Aa938HZFt", email })
+      body: JSON.stringify({ priceId: "price_1TBuUHIRxjgeiG9AFPucQW5Z", email })
     })
     const { url } = await res.json()
     window.location.href = url
@@ -138,7 +138,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <span className={`text-4xl font-extrabold ${plan === "pro" ? "text-fuchsia-200" : "text-gray-200"}`}>
-                {plan === "pro" ? "29€" : "0€"}
+                {plan === "pro" ? "49€" : "0€"}
               </span>
             </div>
 
@@ -152,7 +152,7 @@ export default function DashboardPage() {
                   disabled={loading}
                   className="w-full py-3 bg-fuchsia-600 text-white font-bold rounded-xl text-sm hover:bg-fuchsia-700 transition-colors disabled:opacity-50"
                 >
-                  {loading ? "Chargement..." : "Passer au plan Pro — 29€/mois →"}
+                  {loading ? "Chargement..." : "Passer au plan Pro — 49€/mois →"}
                 </button>
               </div>
             ) : (

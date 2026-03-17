@@ -324,7 +324,7 @@ export default function HomePage() {
                   Le plus populaire
                 </span>
                 <p className="text-xs font-bold text-fuchsia-200 uppercase tracking-widest mb-3">Pro</p>
-                <p className="text-5xl font-extrabold">29€</p>
+                <p className="text-5xl font-extrabold">49€</p>
                 <p className="text-sm text-fuchsia-200 font-medium mt-1">par mois · sans engagement</p>
               </div>
               <ul className="relative z-10 flex flex-col gap-3 text-sm text-fuchsia-100 font-medium flex-1">
