@@ -29,7 +29,7 @@ export default function ResetPasswordPage() {
     setLoading(false)
     if (error) { setMessage(error.message); return }
     setDone(true)
-    setTimeout(() => { window.location.href = "/dashboard" }, 2000)
+    setTimeout(() => { window.location.href = "/app" }, 2000)
   }
 
   return (

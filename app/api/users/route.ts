@@ -13,10 +13,10 @@ export async function PATCH(request: Request) {
   const authUser = await getAuthUser(request)
   if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
 
-  const { name } = await request.json()
+  const { name, telephone, agence } = await request.json()
   if (!name) return Response.json({ error: "name requis" }, { status: 400 })
 
-  const user = await prisma.user.update({ where: { email: authUser.email }, data: { name } })
+  const user = await prisma.user.update({ where: { email: authUser.email }, data: { name, telephone, agence } })
   return Response.json(user)
 }
 

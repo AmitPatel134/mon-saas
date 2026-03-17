@@ -9,6 +9,8 @@ export default function ProfilPage() {
   const [ready, setReady] = useState(false)
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
+  const [telephone, setTelephone] = useState("")
+  const [agence, setAgence] = useState("")
   const [plan, setPlan] = useState("free")
   const [toast, setToast] = useState<string | null>(null)
   const [savingName, setSavingName] = useState(false)
@@ -29,6 +31,8 @@ export default function ProfilPage() {
       setEmail(session.user.email ?? "")
       const user = await authFetch("/api/users").then(r => r.json())
       if (user?.name) setName(user.name)
+      if (user?.telephone) setTelephone(user.telephone)
+      if (user?.agence) setAgence(user.agence)
       if (user?.plan) setPlan(user.plan)
       setReady(true)
     })
@@ -41,7 +45,7 @@ export default function ProfilPage() {
     const res = await authFetch("/api/users", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim() }),
+      body: JSON.stringify({ name: name.trim(), telephone: telephone.trim() || null, agence: agence.trim() || null }),
     })
     setSavingName(false)
     if (res.ok) showToast("Nom mis à jour ✓")
@@ -108,11 +112,11 @@ export default function ProfilPage() {
                 <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${plan === "pro" ? "text-fuchsia-200" : "text-gray-400"}`}>Plan actuel</p>
                 <p className={`text-2xl font-extrabold ${plan === "pro" ? "text-white" : "text-gray-900"}`}>{plan === "pro" ? "Pro" : "Free"}</p>
               </div>
-              <span className={`text-3xl font-extrabold ${plan === "pro" ? "text-fuchsia-200" : "text-gray-200"}`}>{plan === "pro" ? "49€" : "0€"}</span>
+              <span className={`text-3xl font-extrabold ${plan === "pro" ? "text-fuchsia-200" : "text-gray-200"}`}>{plan === "pro" ? "29€" : "0€"}</span>
             </div>
             {plan === "free" ? (
               <a href="/pricing" className="inline-block px-4 py-2.5 bg-fuchsia-600 text-white text-sm font-bold rounded-xl hover:bg-fuchsia-700 transition-colors">
-                Passer au plan Pro — 49€/mois →
+                Passer au plan Pro — 29€/mois →
               </a>
             ) : (
               <button
@@ -144,6 +148,26 @@ export default function ProfilPage() {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Ex : Jean Dupont"
+                className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1 block">Téléphone <span className="text-gray-400 font-normal">(optionnel)</span></label>
+              <input
+                type="tel"
+                value={telephone}
+                onChange={e => setTelephone(e.target.value)}
+                placeholder="Ex : 06 12 34 56 78"
+                className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1 block">Agence / Cabinet <span className="text-gray-400 font-normal">(optionnel)</span></label>
+              <input
+                type="text"
+                value={agence}
+                onChange={e => setAgence(e.target.value)}
+                placeholder="Ex : Agence Dupont Immobilier"
                 className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
               />
             </div>
