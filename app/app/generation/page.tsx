@@ -115,12 +115,17 @@ export default function GenerationPage() {
   const [instructions, setInstructions] = useState("")
   const [visiteForm, setVisiteForm] = useState<VisiteForm>(VISITE_FORM_DEFAULT)
 
+  // Destinataire
+  const [recipientEmail, setRecipientEmail] = useState("")
+  const [recipientPhone, setRecipientPhone] = useState("")
+
   // Result
   const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState("")
   const [resultLabel, setResultLabel] = useState("")
   const [error, setError] = useState("")
   const [copied, setCopied] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
 
   // History
   const [historique, setHistorique] = useState<Generation[]>([])
@@ -234,6 +239,39 @@ export default function GenerationPage() {
     navigator.clipboard.writeText(text)
     setCopied(id)
     setTimeout(() => setCopied(null), 2000)
+  }
+
+  async function handleSend() {
+    if (!result) return
+    setSending(true)
+    try {
+      if (mode === "sms") {
+        const res = await fetch("/api/send-sms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to: recipientPhone, body: result }),
+        })
+        if (!res.ok) throw new Error()
+        showToast("SMS envoyé ✓")
+      } else {
+        // Extraire l'objet de la première ligne "Objet : ..."
+        const lines = result.split("\n")
+        const subjectLine = lines.find(l => l.toLowerCase().startsWith("objet"))
+        const subject = subjectLine ? subjectLine.replace(/^objet\s*:\s*/i, "").trim() : "Message de votre agent immobilier"
+        const body = lines.filter(l => l !== subjectLine).join("\n").trim()
+        const res = await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to: recipientEmail, subject, body }),
+        })
+        if (!res.ok) throw new Error()
+        showToast("Email envoyé ✓")
+      }
+    } catch {
+      showToast("Erreur lors de l'envoi")
+    } finally {
+      setSending(false)
+    }
   }
 
   function handleSelectHisto(h: Generation) {
@@ -400,6 +438,32 @@ export default function GenerationPage() {
               </div>
             )}
 
+            {/* Destinataire */}
+            {(mode === "email" || mode === "vendeur") && (
+              <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Destinataire</p>
+                <input
+                  type="email"
+                  value={recipientEmail}
+                  onChange={e => setRecipientEmail(e.target.value)}
+                  placeholder="email@exemple.fr"
+                  className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
+                />
+              </div>
+            )}
+            {mode === "sms" && (
+              <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Destinataire</p>
+                <input
+                  type="tel"
+                  value={recipientPhone}
+                  onChange={e => setRecipientPhone(e.target.value)}
+                  placeholder="+33612345678"
+                  className="w-full px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
+                />
+              </div>
+            )}
+
             {/* Style (ton / longueur / instructions) — masqué pour visite et SMS */}
             {mode !== "visite" && (
               <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-4">
@@ -491,6 +555,15 @@ export default function GenerationPage() {
                         className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${copied === "current" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                         {copied === "current" ? "Copié ✓" : "Copier"}
                       </button>
+                      {((mode === "email" || mode === "vendeur") && recipientEmail) || (mode === "sms" && recipientPhone) ? (
+                        <button
+                          onClick={handleSend}
+                          disabled={sending}
+                          className="text-xs font-bold px-3 py-1.5 rounded-lg bg-fuchsia-600 text-white hover:bg-fuchsia-700 transition-colors disabled:opacity-50"
+                        >
+                          {sending ? "Envoi..." : mode === "sms" ? "Envoyer SMS" : "Envoyer email"}
+                        </button>
+                      ) : null}
                     </>
                   )}
                 </div>
