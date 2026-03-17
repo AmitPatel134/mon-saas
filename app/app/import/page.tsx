@@ -64,7 +64,7 @@ export default function ImportPage() {
     try {
       const res = await fetch("/api/import/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ rows: rawRows.slice(0, 200), entityType }),
       })
       if (!res.ok) throw new Error()

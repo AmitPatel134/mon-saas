@@ -8,8 +8,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const { id } = await params
   const body = await request.json()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id: _id, userId: _userId, createdAt: _c, updatedAt: _u, criteresParses: _cp, ...data } = body
+  const { nom, telephone, email: prospectEmail, budget, criteres, statut, rappel, biensVisites } = body
 
   const user = await prisma.user.findUnique({ where: { email: authUser.email } })
   if (!user) return Response.json({ error: "Utilisateur introuvable" }, { status: 404 })
@@ -19,8 +18,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return Response.json({ error: "Non autorisé" }, { status: 403 })
   }
 
+  const data = { nom, telephone, email: prospectEmail, budget, criteres, statut, rappel, biensVisites }
+
   try {
-    const criteresChanged = existing.criteres !== data.criteres
+    const criteresChanged = existing.criteres !== criteres
     const prospect = await prisma.prospect.update({ where: { id }, data })
 
     // Re-parse if criteres changed

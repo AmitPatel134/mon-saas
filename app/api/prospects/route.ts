@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
 
   const body = await request.json()
-  const { id: _id, userEmail: _ue, ...data } = body
+  const { nom, telephone, email: prospectEmail, budget, criteres, statut, rappel, biensVisites } = body
 
   const user = await prisma.user.upsert({
     where: { email: authUser.email },
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
   try {
     const prospect = await prisma.prospect.create({
-      data: { ...data, userId: user.id },
+      data: { userId: user.id, nom, telephone, email: prospectEmail, budget, criteres, statut, rappel, biensVisites },
     })
 
     // Parse criteria in background (don't block response)

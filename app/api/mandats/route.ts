@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
 
   const body = await request.json()
-  const { id: _id, userEmail: _ue, ...data } = body
+  const { type, adresse, ville, surface, pieces, prix, statut, etage, exposition, chauffage, dpe, etat, charges, anneeConstruction, parking, cave, balcon, ascenseur, description } = body
 
   const user = await prisma.user.upsert({
     where: { email: authUser.email },
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
   try {
     const mandat = await prisma.mandat.create({
-      data: { ...data, userId: user.id },
+      data: { userId: user.id, type, adresse, ville, surface, pieces, prix, statut, etage, exposition, chauffage, dpe, etat, charges, anneeConstruction, parking, cave, balcon, ascenseur, description },
     })
     return Response.json(mandat, { status: 201 })
   } catch (e) {

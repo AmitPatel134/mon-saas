@@ -1,5 +1,6 @@
 import Groq from "groq-sdk"
 import { createRateLimiter } from "@/lib/rate-limit"
+import { getAuthUser } from "@/lib/authServer"
 import { NextRequest } from "next/server"
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -43,6 +44,9 @@ Schéma prospect :
 Réponds UNIQUEMENT avec un tableau JSON valide, sans markdown ni explication. Omets les lignes vides ou sans données essentielles.`
 
 export async function POST(request: NextRequest) {
+  const authUser = await getAuthUser(request)
+  if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
+
   const limited = rateLimit(request)
   if (limited) return limited
 
