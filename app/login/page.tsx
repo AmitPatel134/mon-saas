@@ -8,8 +8,11 @@ export default function LoginPage() {
   const [view, setView] = useState<View>("login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [agency, setAgency] = useState("")
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [fading, setFading] = useState(false)
@@ -17,6 +20,12 @@ export default function LoginPage() {
   const lastNameRef = useRef<HTMLInputElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
+  const confirmPasswordRef = useRef<HTMLInputElement>(null)
+  const phoneRef = useRef<HTMLInputElement>(null)
+  const agencyRef = useRef<HTMLInputElement>(null)
+
+  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword
+  const passwordTooShort = password.length > 0 && password.length < 6
 
   function switchView(next: View) {
     setFading(true)
@@ -24,13 +33,19 @@ export default function LoginPage() {
       setView(next)
       setEmail("")
       setPassword("")
+      setConfirmPassword("")
       setFirstName("")
       setLastName("")
+      setPhone("")
+      setAgency("")
       setMessage("")
       if (firstNameRef.current) firstNameRef.current.value = ""
       if (lastNameRef.current) lastNameRef.current.value = ""
       if (emailRef.current) emailRef.current.value = ""
       if (passwordRef.current) passwordRef.current.value = ""
+      if (confirmPasswordRef.current) confirmPasswordRef.current.value = ""
+      if (phoneRef.current) phoneRef.current.value = ""
+      if (agencyRef.current) agencyRef.current.value = ""
       setFading(false)
     }, 180)
   }
@@ -43,6 +58,16 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
+      if (password.length < 6) {
+        setMessage("Mot de passe trop court (6 caractères minimum).")
+        setLoading(false)
+        return
+      }
+      if (password !== confirmPassword) {
+        setMessage("Les mots de passe ne correspondent pas.")
+        setLoading(false)
+        return
+      }
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -52,7 +77,12 @@ export default function LoginPage() {
       await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name: `${firstName.trim()} ${lastName.trim()}` })
+        body: JSON.stringify({
+          email,
+          name: `${firstName.trim()} ${lastName.trim()}`,
+          telephone: phone.trim() || undefined,
+          agence: agency.trim() || undefined,
+        })
       })
       switchView("signup-sent")
       setLoading(false)
@@ -90,8 +120,8 @@ export default function LoginPage() {
       <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-fuchsia-800/50" />
       <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
-      <div className="relative w-full max-w-sm">
-        <a href="/" className="block text-center text-white font-extrabold text-2xl mb-10 tracking-tight">Cléo</a>
+      <div className={`relative w-full transition-all duration-200 ${view === "signup" ? "max-w-md" : "max-w-sm"}`}>
+        <a href="/" className="block text-center text-white font-extrabold text-2xl mb-10 tracking-tight">CleoAI</a>
         <div className="bg-white rounded-3xl p-8 shadow-xl">
 
           {/* Vue: Inscription — confirmation email */}
@@ -178,7 +208,7 @@ export default function LoginPage() {
                   {view === "signup" ? "Créer un compte" : "Se connecter"}
                 </h1>
                 <p className="text-sm text-gray-500 font-medium mb-6">
-                  {view === "signup" ? "Commence gratuitement, sans carte bancaire." : "Connecte-toi à ton espace Cléo."}
+                  {view === "signup" ? "Commence gratuitement, sans carte bancaire." : "Connecte-toi à ton espace CleoAI."}
                 </p>
               </div>
 
@@ -211,24 +241,42 @@ export default function LoginPage() {
                 style={{ opacity: fading ? 0 : 1, transform: fading ? 'translateY(6px)' : 'translateY(0)' }}
               >
                 {view === "signup" && (
-                  <div className="flex gap-2">
+                  <>
+                    <div className="flex gap-2">
+                      <input
+                        ref={firstNameRef}
+                        type="text"
+                        placeholder="Prénom"
+                        onChange={e => setFirstName(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && lastNameRef.current?.focus()}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
+                      />
+                      <input
+                        ref={lastNameRef}
+                        type="text"
+                        placeholder="Nom"
+                        onChange={e => setLastName(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && phoneRef.current?.focus()}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
+                      />
+                    </div>
                     <input
-                      ref={firstNameRef}
-                      type="text"
-                      placeholder="Prénom"
-                      onChange={e => setFirstName(e.target.value)}
-                      onKeyDown={e => e.key === "Enter" && lastNameRef.current?.focus()}
+                      ref={phoneRef}
+                      type="tel"
+                      placeholder="Téléphone (optionnel)"
+                      onChange={e => setPhone(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && agencyRef.current?.focus()}
                       className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
                     />
                     <input
-                      ref={lastNameRef}
+                      ref={agencyRef}
                       type="text"
-                      placeholder="Nom"
-                      onChange={e => setLastName(e.target.value)}
+                      placeholder="Agence / Cabinet (optionnel)"
+                      onChange={e => setAgency(e.target.value)}
                       onKeyDown={e => e.key === "Enter" && emailRef.current?.focus()}
                       className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
                     />
-                  </div>
+                  </>
                 )}
                 <input
                   ref={emailRef}
@@ -238,14 +286,42 @@ export default function LoginPage() {
                   onKeyDown={e => e.key === "Enter" && passwordRef.current?.focus()}
                   className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
                 />
-                <input
-                  ref={passwordRef}
-                  type="password"
-                  placeholder="Mot de passe"
-                  onChange={e => setPassword(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleAuth()}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
-                />
+                <div>
+                  <input
+                    ref={passwordRef}
+                    type="password"
+                    placeholder="Mot de passe"
+                    onChange={e => setPassword(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && (view === "signup" ? confirmPasswordRef.current?.focus() : handleAuth())}
+                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
+                  />
+                  {view === "signup" && passwordTooShort && (
+                    <p className="text-xs text-red-500 font-medium mt-1 ml-1">6 caractères minimum</p>
+                  )}
+                </div>
+                {view === "signup" && (
+                  <div>
+                    <input
+                      ref={confirmPasswordRef}
+                      type="password"
+                      placeholder="Confirmer le mot de passe"
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && handleAuth()}
+                      className={`w-full px-4 py-3 rounded-xl bg-gray-50 border text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white transition-colors ${
+                        confirmPassword.length > 0
+                          ? passwordsMatch
+                            ? "border-green-400 focus:border-green-400"
+                            : "border-red-300 focus:border-red-400"
+                          : "border-gray-200 focus:border-fuchsia-400"
+                      }`}
+                    />
+                    {confirmPassword.length > 0 && (
+                      <p className={`text-xs font-medium mt-1 ml-1 ${passwordsMatch ? "text-green-600" : "text-red-500"}`}>
+                        {passwordsMatch ? "✓ Les mots de passe correspondent" : "Les mots de passe ne correspondent pas"}
+                      </p>
+                    )}
+                  </div>
+                )}
                 <button
                   onClick={handleAuth}
                   disabled={loading}

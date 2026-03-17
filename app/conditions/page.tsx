@@ -2,7 +2,7 @@ export default function ConditionsPage() {
   return (
     <div className="min-h-screen bg-white">
       <nav className="border-b border-gray-200 px-10 py-5 flex items-center justify-between">
-        <a href="/" className="text-lg font-extrabold tracking-tight text-gray-900">Cléo</a>
+        <a href="/" className="text-lg font-extrabold tracking-tight text-gray-900">CleoAI</a>
         <a href="/" className="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">← Retour</a>
       </nav>
 
@@ -16,20 +16,20 @@ export default function ConditionsPage() {
           <section>
             <h2 className="text-lg font-extrabold text-gray-900 mb-3">1. Objet</h2>
             <p className="text-sm font-medium leading-relaxed">
-              Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'utilisation de la plateforme Cléo, outil SaaS destiné aux agents immobiliers professionnels. En créant un compte, vous acceptez l'intégralité de ces conditions.
+              Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'utilisation de la plateforme CleoAI, outil SaaS destiné aux agents immobiliers professionnels. En créant un compte, vous acceptez l'intégralité de ces conditions.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-extrabold text-gray-900 mb-3">2. Accès au service</h2>
             <p className="text-sm font-medium leading-relaxed">
-              L'accès à Cléo est réservé aux professionnels de l'immobilier. Vous devez être majeur et disposer de la capacité juridique pour accepter ces CGU. Un compte est personnel et non transférable. Vous êtes responsable de la confidentialité de vos identifiants.
+              L'accès à CleoAI est réservé aux professionnels de l'immobilier. Vous devez être majeur et disposer de la capacité juridique pour accepter ces CGU. Un compte est personnel et non transférable. Vous êtes responsable de la confidentialité de vos identifiants.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-extrabold text-gray-900 mb-3">3. Plans et facturation</h2>
-            <p className="text-sm font-medium leading-relaxed mb-3">Cléo propose deux formules :</p>
+            <p className="text-sm font-medium leading-relaxed mb-3">CleoAI propose deux formules :</p>
             <ul className="flex flex-col gap-2 text-sm font-medium mb-3">
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 shrink-0 mt-1.5" />
@@ -54,7 +54,7 @@ export default function ConditionsPage() {
 
           <section>
             <h2 className="text-lg font-extrabold text-gray-900 mb-3">5. Utilisation acceptable</h2>
-            <p className="text-sm font-medium leading-relaxed mb-3">Il est interdit d'utiliser Cléo pour :</p>
+            <p className="text-sm font-medium leading-relaxed mb-3">Il est interdit d'utiliser CleoAI pour :</p>
             <ul className="flex flex-col gap-2 text-sm font-medium">
               {[
                 "Publier des contenus illicites, trompeurs ou discriminatoires",
@@ -74,14 +74,14 @@ export default function ConditionsPage() {
           <section>
             <h2 className="text-lg font-extrabold text-gray-900 mb-3">6. Propriété intellectuelle</h2>
             <p className="text-sm font-medium leading-relaxed">
-              La plateforme Cléo, son interface, son code et ses contenus sont la propriété exclusive de Cléo SAS. Les contenus générés par l'IA à partir de vos données vous appartiennent. Vous nous accordez une licence limitée pour traiter vos données dans le cadre du service.
+              La plateforme CleoAI, son interface, son code et ses contenus sont la propriété exclusive de CleoAI SAS. Les contenus générés par l'IA à partir de vos données vous appartiennent. Vous nous accordez une licence limitée pour traiter vos données dans le cadre du service.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-extrabold text-gray-900 mb-3">7. Limitation de responsabilité</h2>
             <p className="text-sm font-medium leading-relaxed">
-              Cléo est fourni "en l'état". Les textes générés par l'IA sont des suggestions — vous êtes responsable de leur relecture et de leur publication. Nous ne garantissons pas l'exactitude ou la pertinence des contenus générés. Notre responsabilité est limitée au montant des sommes versées au cours des 3 derniers mois.
+              CleoAI est fourni "en l'état". Les textes générés par l'IA sont des suggestions — vous êtes responsable de leur relecture et de leur publication. Nous ne garantissons pas l'exactitude ou la pertinence des contenus générés. Notre responsabilité est limitée au montant des sommes versées au cours des 3 derniers mois.
             </p>
           </section>
 
@@ -110,7 +110,7 @@ export default function ConditionsPage() {
       </div>
 
       <footer className="border-t border-gray-100 px-10 py-6 flex items-center justify-between mt-8">
-        <span className="font-extrabold text-gray-900">Cléo</span>
+        <span className="font-extrabold text-gray-900">CleoAI</span>
         <div className="flex gap-6 text-sm font-semibold text-gray-400">
           <a href="/confidentialite" className="hover:text-gray-900 transition-colors">Confidentialité</a>
           <a href="/conditions" className="text-fuchsia-600">Conditions</a>

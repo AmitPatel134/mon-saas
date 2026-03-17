@@ -27,7 +27,12 @@ export async function POST(request: Request) {
   const user = await prisma.user.upsert({
     where: { email: body.email },
     update: {},
-    create: { email: body.email, name: body.name },
+    create: {
+      email: body.email,
+      name: body.name,
+      telephone: body.telephone ?? null,
+      agence: body.agence ?? null,
+    },
   })
   if (!existing) {
     try {

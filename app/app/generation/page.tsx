@@ -258,7 +258,7 @@ export default function GenerationPage() {
     doc.setFont("helvetica", "bold")
     doc.setFontSize(16)
     doc.setTextColor(162, 28, 175) // fuchsia
-    doc.text("Cléo — Document généré", margin, margin)
+    doc.text("CleoAI — Document généré", margin, margin)
 
     doc.setFont("helvetica", "normal")
     doc.setFontSize(11)

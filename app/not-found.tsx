@@ -6,7 +6,7 @@ export default function NotFound() {
 
       {/* Logo */}
       <Link href="/" className="font-extrabold text-xl tracking-tight text-white mb-16">
-        Cléo
+        CleoAI
       </Link>
 
       {/* 404 */}

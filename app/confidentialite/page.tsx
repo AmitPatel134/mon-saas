@@ -2,7 +2,7 @@ export default function ConfidentialitePage() {
   return (
     <div className="min-h-screen bg-white">
       <nav className="border-b border-gray-200 px-10 py-5 flex items-center justify-between">
-        <a href="/" className="text-lg font-extrabold tracking-tight text-gray-900">Cléo</a>
+        <a href="/" className="text-lg font-extrabold tracking-tight text-gray-900">CleoAI</a>
         <a href="/" className="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">← Retour</a>
       </nav>
 
@@ -16,7 +16,7 @@ export default function ConfidentialitePage() {
           <section>
             <h2 className="text-lg font-extrabold text-gray-900 mb-3">1. Qui sommes-nous ?</h2>
             <p className="text-sm font-medium leading-relaxed">
-              Cléo est un outil SaaS destiné aux agents immobiliers, édité par Cléo SAS. Nous collectons et traitons des données personnelles dans le cadre de la fourniture de nos services. Pour toute question relative à vos données, contactez-nous à <a href="mailto:patelamit134@gmail.com" className="text-fuchsia-600 hover:underline">patelamit134@gmail.com</a>.
+              CleoAI est un outil SaaS destiné aux agents immobiliers, édité par CleoAI SAS. Nous collectons et traitons des données personnelles dans le cadre de la fourniture de nos services. Pour toute question relative à vos données, contactez-nous à <a href="mailto:patelamit134@gmail.com" className="text-fuchsia-600 hover:underline">patelamit134@gmail.com</a>.
             </p>
           </section>
 
@@ -111,7 +111,7 @@ export default function ConfidentialitePage() {
       </div>
 
       <footer className="border-t border-gray-100 px-10 py-6 flex items-center justify-between mt-8">
-        <span className="font-extrabold text-gray-900">Cléo</span>
+        <span className="font-extrabold text-gray-900">CleoAI</span>
         <div className="flex gap-6 text-sm font-semibold text-gray-400">
           <a href="/confidentialite" className="text-fuchsia-600">Confidentialité</a>
           <a href="/conditions" className="hover:text-gray-900 transition-colors">Conditions</a>

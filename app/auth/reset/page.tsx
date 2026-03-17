@@ -39,7 +39,7 @@ export default function ResetPasswordPage() {
       <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
       <div className="relative w-full max-w-sm">
-        <a href="/" className="block text-center text-white font-extrabold text-2xl mb-10 tracking-tight">Cléo</a>
+        <a href="/" className="block text-center text-white font-extrabold text-2xl mb-10 tracking-tight">CleoAI</a>
         <div className="bg-white rounded-3xl p-8 shadow-xl">
 
           {done ? (

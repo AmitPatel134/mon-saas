@@ -44,12 +44,12 @@ const FeatureIcons: Record<string, ReactElement> = {
 
 const FAQ_ITEMS = [
   {
-    q: "Est-ce que Cléo est gratuit ?",
-    a: "Oui, Cléo propose un plan Free pour toujours. Il inclut 3 mandats, 5 prospects et 5 générations IA par mois. Aucune carte bancaire requise pour commencer.",
+    q: "Est-ce que CleoAI est gratuit ?",
+    a: "Oui, CleoAI propose un plan Free pour toujours. Il inclut 3 mandats, 5 prospects et 5 générations IA par mois. Aucune carte bancaire requise pour commencer.",
   },
   {
     q: "Quelle IA est utilisée ?",
-    a: "Cléo utilise Groq avec le modèle Llama. C'est une IA ultra-rapide : chaque génération prend moins de 10 secondes, même pour des documents longs.",
+    a: "CleoAI utilise Groq avec le modèle Llama. C'est une IA ultra-rapide : chaque génération prend moins de 10 secondes, même pour des documents longs.",
   },
   {
     q: "Mes données sont-elles sécurisées ?",
@@ -64,7 +64,7 @@ const FAQ_ITEMS = [
     a: "Non. L'abonnement Pro est mois par mois. Vous payez pour le mois en cours et vous pouvez arrêter quand vous le souhaitez.",
   },
   {
-    q: "Cléo fonctionne-t-il sur mobile ?",
+    q: "CleoAI fonctionne-t-il sur mobile ?",
     a: "Oui. L'interface est 100% responsive et conçue pour fonctionner aussi bien sur smartphone que sur ordinateur.",
   },
 ]
@@ -106,7 +106,7 @@ export default function HomePage() {
 
       {/* NAVBAR */}
       <nav className="flex items-center justify-between px-4 md:px-10 py-5 border-b border-gray-200 bg-white sticky top-0 z-50">
-        <a href={email ? "/app" : "/"} className="text-lg font-extrabold tracking-tight text-gray-900">Cléo</a>
+        <a href={email ? "/app" : "/"} className="text-lg font-extrabold tracking-tight text-gray-900">CleoAI</a>
         <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-500">
           {email && (
             <a href="/app" className="bg-gray-950 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2">
@@ -149,7 +149,7 @@ export default function HomePage() {
           </h1>
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
             <p className="text-xl font-medium text-fuchsia-100 max-w-md leading-relaxed">
-              Cléo génère vos annonces, emails, SMS et comptes-rendus en quelques secondes. Gérez mandats et prospects depuis un seul outil.
+              CleoAI génère vos annonces, emails, SMS et comptes-rendus en quelques secondes. Gérez mandats et prospects depuis un seul outil.
             </p>
             <div className="flex flex-col gap-3 md:items-end shrink-0">
               <a href={ctaHref} className="bg-white text-fuchsia-700 font-bold text-sm px-8 py-4 rounded-full hover:bg-fuchsia-50 transition-colors text-center">
@@ -201,7 +201,7 @@ export default function HomePage() {
               {
                 step: "3",
                 title: "L'IA rédige en 10 secondes",
-                desc: "Cléo génère un texte professionnel prêt à copier-coller. Ajustez le ton, la longueur, et guidez l'IA avec vos propres mots-clés.",
+                desc: "CleoAI génère un texte professionnel prêt à copier-coller. Ajustez le ton, la longueur, et guidez l'IA avec vos propres mots-clés.",
               },
             ].map((item) => (
               <div key={item.step} className="flex flex-col gap-4">
@@ -236,7 +236,7 @@ export default function HomePage() {
               {
                 label: "Annonce portail",
                 desc: "SeLoger · Leboncoin · Logic-Immo · PAP · Bien'ici",
-                detail: "Chaque portail a ses propres règles de rédaction. Cléo les connaît.",
+                detail: "Chaque portail a ses propres règles de rédaction. CleoAI les connaît.",
               },
               {
                 label: "Email prospect",
@@ -366,7 +366,7 @@ export default function HomePage() {
                 role: "Négociatrice, Lyon",
               },
               {
-                quote: "Les posts Instagram générés cartonnent. Je n'aurais jamais pensé utiliser les réseaux sociaux pour vendre mes mandats avant Cléo.",
+                quote: "Les posts Instagram générés cartonnent. Je n'aurais jamais pensé utiliser les réseaux sociaux pour vendre mes mandats avant CleoAI.",
                 name: "Thomas R.",
                 role: "Agent indépendant, Bordeaux",
               },
@@ -529,13 +529,13 @@ export default function HomePage() {
 
       {/* FOOTER */}
       <footer className="bg-gray-950 text-gray-500 px-4 md:px-10 py-8 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-white/5">
-        <span className="text-white font-extrabold">Cléo</span>
+        <span className="text-white font-extrabold">CleoAI</span>
         <div className="flex gap-8 text-sm font-semibold">
           <a href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</a>
           <a href="/conditions" className="hover:text-white transition-colors">Conditions</a>
           <a href="/support" className="hover:text-white transition-colors">Support</a>
         </div>
-        <span className="text-xs font-medium">© 2026 Cléo</span>
+        <span className="text-xs font-medium">© 2026 CleoAI</span>
       </footer>
 
       {/* MODAL CONFIRMATION DÉCONNEXION */}

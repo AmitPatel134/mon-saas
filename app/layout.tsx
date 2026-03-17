@@ -10,23 +10,23 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Cléo — CRM IA pour agents immobiliers",
-    template: "%s | Cléo",
+    default: "CleoAI — CRM IA pour agents immobiliers",
+    template: "%s | CleoAI",
   },
   description: "Rédigez vos annonces, emails, SMS et comptes rendus de visite en quelques secondes grâce à l'IA. Gérez mandats et prospects. Matching automatique.",
   keywords: ["CRM immobilier", "agent immobilier", "IA immobilier", "annonce immobilière", "génération texte immobilier", "logiciel agent immo"],
-  authors: [{ name: "Cléo" }],
+  authors: [{ name: "CleoAI" }],
   openGraph: {
-    title: "Cléo — CRM IA pour agents immobiliers",
+    title: "CleoAI — CRM IA pour agents immobiliers",
     description: "Rédigez annonces, emails, SMS et comptes rendus en quelques secondes. Matching mandats / prospects automatique.",
     url: "https://cleoai.fr",
-    siteName: "Cléo",
+    siteName: "CleoAI",
     locale: "fr_FR",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cléo — CRM IA pour agents immobiliers",
+    title: "CleoAI — CRM IA pour agents immobiliers",
     description: "Rédigez annonces, emails, SMS et comptes rendus en quelques secondes. Matching mandats / prospects automatique.",
   },
   robots: {

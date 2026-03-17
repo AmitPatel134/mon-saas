@@ -173,7 +173,7 @@ export default function ImportPage() {
             <div className="w-12 h-12 border-4 border-fuchsia-200 border-t-fuchsia-600 rounded-full animate-spin" />
             <div className="text-center">
               <p className="text-lg font-extrabold text-gray-900">Analyse en cours...</p>
-              <p className="text-sm text-gray-500 mt-1">L&apos;IA mappe tes colonnes vers le schéma Cléo</p>
+              <p className="text-sm text-gray-500 mt-1">L&apos;IA mappe tes colonnes vers le schéma CleoAI</p>
             </div>
           </div>
         )}

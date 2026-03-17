@@ -100,7 +100,7 @@ export default function AppSidebar() {
 
         {/* Logo */}
         <div className="px-5 py-5 border-b border-gray-100">
-          <a href="/app" className="font-extrabold text-lg tracking-tight text-gray-900">Cléo</a>
+          <a href="/app" className="font-extrabold text-lg tracking-tight text-gray-900">CleoAI</a>
           <p className="text-xs text-gray-400 font-medium mt-0.5">Espace agent</p>
         </div>
 

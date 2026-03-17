@@ -30,13 +30,13 @@ export async function sendRappelEmail({
     .join("")
 
   await resend.emails.send({
-    from: "Cléo <noreply@cleoai.fr>",
+    from: "CleoAI <noreply@cleoai.fr>",
     to,
     subject: `🔔 ${rappels.length} rappel${rappels.length > 1 ? "s" : ""} prospect${rappels.length > 1 ? "s" : ""} aujourd'hui`,
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
         <div style="background:#a21caf;padding:32px 32px 24px;">
-          <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#f0abfc;letter-spacing:.1em;text-transform:uppercase;">Cléo · Rappels du jour</p>
+          <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#f0abfc;letter-spacing:.1em;text-transform:uppercase;">CleoAI · Rappels du jour</p>
           <h1 style="margin:0;font-size:24px;font-weight:900;color:#fff;">
             ${rappels.length} prospect${rappels.length > 1 ? "s" : ""} à rappeler aujourd'hui
           </h1>
@@ -61,7 +61,7 @@ export async function sendRappelEmail({
         </div>
         <div style="padding:16px 32px;background:#f9fafb;border-top:1px solid #f3f4f6;">
           <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">
-            Cléo · cleoai.fr — Vous recevez cet email car vous avez des rappels planifiés.
+            CleoAI · cleoai.fr — Vous recevez cet email car vous avez des rappels planifiés.
           </p>
         </div>
       </div>
@@ -72,17 +72,17 @@ export async function sendRappelEmail({
 export async function sendWelcomeEmail({ to, name }: { to: string; name?: string }) {
   const displayName = name ? name : "cher(e) utilisateur(trice)"
   await resend.emails.send({
-    from: "Cléo <noreply@cleoai.fr>",
+    from: "CleoAI <noreply@cleoai.fr>",
     to,
-    subject: "Bienvenue sur Cléo 🎉",
+    subject: "Bienvenue sur CleoAI 🎉",
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
 
         <!-- HEADER -->
         <div style="background:#a21caf;padding:40px 32px 32px;">
-          <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#f0abfc;letter-spacing:.1em;text-transform:uppercase;">Cléo · Intelligence Immobilière</p>
+          <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#f0abfc;letter-spacing:.1em;text-transform:uppercase;">CleoAI · Intelligence Immobilière</p>
           <h1 style="margin:0;font-size:28px;font-weight:900;color:#fff;line-height:1.2;">
-            Bienvenue sur Cléo, ${displayName} !
+            Bienvenue sur CleoAI, ${displayName} !
           </h1>
           <p style="margin:12px 0 0;font-size:15px;color:#f5d0fe;font-weight:500;line-height:1.5;">
             Votre assistant IA pour l'immobilier est prêt. Gagnez du temps, générez des textes professionnels et gérez vos mandats et prospects en un seul endroit.
@@ -93,7 +93,7 @@ export async function sendWelcomeEmail({ to, name }: { to: string; name?: string
         <div style="padding:36px 32px;">
 
           <p style="margin:0 0 24px;font-size:15px;color:#374151;font-weight:500;line-height:1.6;">
-            Découvrez tout ce que Cléo peut faire pour vous dès aujourd'hui :
+            Découvrez tout ce que CleoAI peut faire pour vous dès aujourd'hui :
           </p>
 
           <!-- FEATURE CARDS -->
@@ -136,7 +136,7 @@ export async function sendWelcomeEmail({ to, name }: { to: string; name?: string
         <!-- FOOTER -->
         <div style="padding:16px 32px;background:#f9fafb;border-top:1px solid #f3f4f6;">
           <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">
-            Cléo · <a href="https://cleoai.fr" style="color:#a21caf;text-decoration:none;font-weight:600;">cleoai.fr</a> — L'assistant IA des professionnels de l'immobilier.
+            CleoAI · <a href="https://cleoai.fr" style="color:#a21caf;text-decoration:none;font-weight:600;">cleoai.fr</a> — L'assistant IA des professionnels de l'immobilier.
           </p>
         </div>
 
