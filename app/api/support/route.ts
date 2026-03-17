@@ -7,7 +7,7 @@ export async function POST(request: Request) {
 
   await resend.emails.send({
     from: "CleoAI Support <support@cleoai.fr>",
-    to: "patelamit134@gmail.com",
+    to: "cleoai.saas@gmail.com",
     replyTo: email,
     subject: `[Support CleoAI] ${subject}`,
     html: `
