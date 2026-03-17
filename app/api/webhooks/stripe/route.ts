@@ -12,6 +12,10 @@ async function setUserPlan(email: string, plan: "free" | "pro") {
   await prisma.user.updateMany({ where: { email }, data: { plan } })
 }
 
+async function clearSubscription(email: string) {
+  await prisma.user.updateMany({ where: { email }, data: { plan: "free", planExpiresAt: null } })
+}
+
 export async function POST(request: Request) {
   const body = await request.text()
   const sig = request.headers.get("stripe-signature")
@@ -59,11 +63,11 @@ export async function POST(request: Request) {
       break
     }
 
-    // Abonnement résilié (depuis le portail Stripe ou en fin de période)
+    // Abonnement résilié (fin de période après cancel_at_period_end)
     case "customer.subscription.deleted": {
       const sub = event.data.object as Stripe.Subscription
       const email = await getEmailFromCustomer(sub.customer as string)
-      if (email) await setUserPlan(email, "free")
+      if (email) await clearSubscription(email)
       break
     }
 

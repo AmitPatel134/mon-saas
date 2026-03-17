@@ -6,6 +6,7 @@ import LoadingScreen from "@/components/LoadingScreen"
 export default function DashboardPage() {
   const [email, setEmail] = useState<string | null>(null)
   const [plan, setPlan] = useState<string>("free")
+  const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
   const [ready, setReady] = useState(false)
@@ -34,6 +35,7 @@ export default function DashboardPage() {
       const data = await res.json()
       const user = Array.isArray(data) ? data[0] : data
       if (user?.plan) setPlan(user.plan)
+      if (user?.planExpiresAt) setPlanExpiresAt(user.planExpiresAt)
       setReady(true)
     }
     getUser()
@@ -76,12 +78,13 @@ export default function DashboardPage() {
     if (!email) return
     setConfirm(null)
     setLoading(true)
-    await fetch("/api/users/plan", {
-      method: "PATCH",
+    const res = await fetch("/api/cancel-subscription", {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, plan: "free" })
+      body: JSON.stringify({ email }),
     })
-    setPlan("free")
+    const data = await res.json()
+    if (data.expiresAt) setPlanExpiresAt(data.expiresAt)
     setLoading(false)
   }
 
@@ -170,9 +173,18 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div>
-                <p className="text-sm text-fuchsia-100 font-medium mb-5">
-                  Tu as accès à toutes les fonctionnalités. Merci de ta confiance !
-                </p>
+                {planExpiresAt ? (
+                  <p className="text-sm text-fuchsia-100 font-medium mb-5">
+                    Abonnement annulé. Tu gardes l&apos;accès Pro jusqu&apos;au{" "}
+                    <span className="font-bold text-white">
+                      {new Date(planExpiresAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                    </span>.
+                  </p>
+                ) : (
+                  <p className="text-sm text-fuchsia-100 font-medium mb-5">
+                    Tu as accès à toutes les fonctionnalités. Merci de ta confiance !
+                  </p>
+                )}
                 <div className="flex items-center gap-4">
                   <button
                     onClick={handleBillingPortal}
@@ -184,13 +196,15 @@ export default function DashboardPage() {
                     </svg>
                     {billingLoading ? "Chargement..." : "Mes factures"}
                   </button>
-                  <button
-                    onClick={() => setConfirm("downgrade")}
-                    disabled={loading}
-                    className="text-sm text-fuchsia-200 hover:text-white font-semibold underline transition-colors disabled:opacity-50"
-                  >
-                    {loading ? "Chargement..." : "Annuler l'abonnement"}
-                  </button>
+                  {!planExpiresAt && (
+                    <button
+                      onClick={() => setConfirm("downgrade")}
+                      disabled={loading}
+                      className="text-sm text-fuchsia-200 hover:text-white font-semibold underline transition-colors disabled:opacity-50"
+                    >
+                      {loading ? "Chargement..." : "Annuler l'abonnement"}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -231,7 +245,7 @@ export default function DashboardPage() {
                 </div>
                 <h3 className="text-xl font-extrabold text-gray-900 mb-2">Annuler l&apos;abonnement Pro ?</h3>
                 <p className="text-sm text-gray-500 font-medium mb-6">
-                  Tu perdras l&apos;accès illimité aux mandats, prospects et générations IA. Tu retourneras au plan Free (3 mandats · 5 prospects · 5 générations/mois).
+                  Ton abonnement ne sera pas renouvelé. Tu gardes l&apos;accès Pro jusqu&apos;à la fin de ta période en cours, puis tu retourneras au plan Free.
                 </p>
                 <div className="flex gap-3">
                   <button onClick={() => setConfirm(null)} className="flex-1 py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-gray-400 transition-colors">
