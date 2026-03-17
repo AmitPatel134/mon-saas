@@ -126,6 +126,8 @@ export default function GenerationPage() {
   const [historique, setHistorique] = useState<Generation[]>([])
   const [filtreHisto, setFiltreHisto] = useState("tous")
   const [selected, setSelected] = useState<Generation | null>(null)
+  const [selectedGens, setSelectedGens] = useState<Set<string>>(new Set())
+  const [confirmBulk, setConfirmBulk] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   function showToast(msg: string) {
@@ -228,6 +230,19 @@ export default function GenerationPage() {
     await fetch(`/api/generations/${id}`, { method: "DELETE" })
     setHistorique(prev => prev.filter(h => h.id !== id))
     if (selected?.id === id) { setSelected(null); setResult(""); setResultLabel("") }
+  }
+
+  async function handleBulkDelete() {
+    await Promise.all([...selectedGens].map(id => fetch(`/api/generations/${id}`, { method: "DELETE" })))
+    setHistorique(prev => prev.filter(h => !selectedGens.has(h.id)))
+    if (selected && selectedGens.has(selected.id)) { setSelected(null); setResult(""); setResultLabel("") }
+    showToast(`${selectedGens.size} génération${selectedGens.size > 1 ? "s" : ""} supprimée${selectedGens.size > 1 ? "s" : ""}`)
+    setSelectedGens(new Set())
+    setConfirmBulk(false)
+  }
+
+  function toggleSelectGen(id: string) {
+    setSelectedGens(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   }
 
   function handleCopy(text: string, id: string) {
@@ -524,6 +539,12 @@ export default function GenerationPage() {
             <div className="flex items-center gap-3">
               <p className="text-sm font-extrabold text-gray-900">Historique</p>
               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{historique.length}</span>
+              {selectedGens.size > 0 && (
+                <button onClick={() => setConfirmBulk(true)}
+                  className="bg-red-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors">
+                  Supprimer ({selectedGens.size})
+                </button>
+              )}
             </div>
             <div className="flex gap-1.5 flex-wrap justify-end">
               {FILTRES.map(f => (
@@ -546,9 +567,13 @@ export default function GenerationPage() {
                 const badgeLabel = h.portail && !["email", "sms", "visite", "vendeur"].includes(h.portail) ? h.portail : badge.label
                 return (
                   <div key={h.id}
-                    className={`flex items-start gap-4 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer group ${selected?.id === h.id ? "bg-fuchsia-50" : ""}`}
+                    className={`flex items-start gap-4 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer group ${selectedGens.has(h.id) ? "bg-red-50" : selected?.id === h.id ? "bg-fuchsia-50" : ""}`}
                     onClick={() => handleSelectHisto(h)}
                   >
+                    <input type="checkbox" checked={selectedGens.has(h.id)}
+                      onChange={() => toggleSelectGen(h.id)}
+                      onClick={e => e.stopPropagation()}
+                      className="mt-1 w-4 h-4 rounded accent-red-500 shrink-0 cursor-pointer" />
                     <div className="shrink-0 pt-0.5">
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${badge.classes}`}>
                         {badgeLabel}
@@ -588,6 +613,29 @@ export default function GenerationPage() {
         </div>
 
       </div>
+
+      {/* MODAL CONFIRMATION BULK DELETE */}
+      {confirmBulk && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-xl">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center mb-5">
+              <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">Supprimer {selectedGens.size} génération{selectedGens.size > 1 ? "s" : ""} ?</h3>
+            <p className="text-sm text-gray-500 font-medium mb-6">Cette action est irréversible. Les textes sélectionnés seront définitivement supprimés.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmBulk(false)} className="flex-1 py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-gray-400 transition-colors">
+                Annuler
+              </button>
+              <button onClick={handleBulkDelete} className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-colors">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && <Toast message={toast} onHide={() => setToast(null)} />}
     </div>

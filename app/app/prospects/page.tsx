@@ -52,6 +52,8 @@ export default function ProspectsPage() {
 
   // Confirmation suppression
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [selectedProspects, setSelectedProspects] = useState<Set<string>>(new Set())
+  const [confirmBulk, setConfirmBulk] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   function showToast(msg: string) {
@@ -172,6 +174,19 @@ export default function ProspectsPage() {
     showToast("Prospect supprimé")
   }
 
+  async function handleBulkDelete() {
+    await Promise.all([...selectedProspects].map(id => fetch(`/api/prospects/${id}`, { method: "DELETE" })))
+    setProspects(ps => ps.filter(p => !selectedProspects.has(p.id)))
+    if (detail && selectedProspects.has(detail.id)) setDetail(null)
+    showToast(`${selectedProspects.size} prospect${selectedProspects.size > 1 ? "s" : ""} supprimé${selectedProspects.size > 1 ? "s" : ""}`)
+    setSelectedProspects(new Set())
+    setConfirmBulk(false)
+  }
+
+  function toggleSelectProspect(id: string) {
+    setSelectedProspects(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  }
+
   // --- STATUT ---
   async function updateStatut(id: string, statut: StatutProspect) {
     const prospect = prospects.find(p => p.id === id)
@@ -193,7 +208,13 @@ export default function ProspectsPage() {
       {/* TOPBAR */}
       <nav className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-40">
         <h1 className="text-lg font-extrabold text-gray-900">Prospects</h1>
-        <div>
+        <div className="flex items-center gap-3">
+          {selectedProspects.size > 0 && (
+            <button onClick={() => setConfirmBulk(true)}
+              className="bg-red-500 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-red-600 transition-colors">
+              Supprimer ({selectedProspects.size})
+            </button>
+          )}
           {planLimit !== null && prospects.length >= planLimit ? (
             <a href="/pricing" className="bg-indigo-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors">
               Passer au Pro →
@@ -229,147 +250,139 @@ export default function ProspectsPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-5 gap-4">
+        {/* LISTE ACCORDÉON */}
+        {filtered.length === 0 ? (
+          prospects.length === 0 ? (
+            <div className="text-center py-24">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <p className="text-base font-extrabold text-gray-900 mb-1">Aucun prospect pour l&apos;instant</p>
+              <p className="text-sm text-gray-400 font-medium mb-5">Ajoute ton premier contact acheteur.</p>
+              <button
+                onClick={() => { setCreateForm({ ...EMPTY_NEW }); setShowCreate(true) }}
+                className="inline-flex items-center gap-2 bg-indigo-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors"
+              >
+                + Ajouter mon premier prospect
+              </button>
+            </div>
+          ) : (
+            <div className="text-center py-20 text-gray-400">
+              <p className="text-sm font-medium">Aucun prospect dans cette catégorie.</p>
+            </div>
+          )
+        ) : (
+          <div className="flex flex-col gap-2">
+            {filtered.map(p => {
+              const isOpen = detail?.id === p.id
+              const isChecked = selectedProspects.has(p.id)
+              const rs = getRappelStatus(p.rappel)
+              return (
+                <div key={p.id} className={`bg-white rounded-2xl border transition-all ${isChecked ? "border-red-300 bg-red-50" : isOpen ? "border-indigo-300" : "border-gray-200 hover:border-indigo-200"}`}>
 
-          {/* LISTE */}
-          <div className="col-span-2 flex flex-col gap-3">
-            {filtered.length === 0 && (
-              prospects.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  {/* EN-TÊTE — toujours visible */}
+                  <div
+                    className="flex items-center gap-3 px-5 py-4 cursor-pointer"
+                    onClick={() => setDetail(isOpen ? null : p)}
+                  >
+                    <input type="checkbox" checked={isChecked}
+                      onChange={() => toggleSelectProspect(p.id)}
+                      onClick={e => e.stopPropagation()}
+                      className="w-4 h-4 rounded accent-red-500 shrink-0 cursor-pointer" />
+
+                    {/* Nom */}
+                    <p className="font-bold text-sm text-gray-900 flex-1 min-w-0 truncate">{p.nom}</p>
+
+                    {/* Rappel indicator */}
+                    {rs && (
+                      <span className={`text-xs font-bold shrink-0 ${rs === "overdue" ? "text-red-500" : "text-amber-500"}`}>
+                        {rs === "overdue" ? "🔴 En retard" : "🔔 Aujourd'hui"}
+                      </span>
+                    )}
+
+                    {/* Budget */}
+                    <span className="text-sm font-extrabold text-indigo-600 shrink-0">{p.budget.toLocaleString("fr-FR")} €</span>
+
+                    {/* Statut */}
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${statutConfig[p.statut].classes}`}>
+                      {statutConfig[p.statut].label}
+                    </span>
+
+                    {/* Chevron */}
+                    <svg className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
-                  <p className="text-sm font-extrabold text-gray-900 mb-1">Aucun prospect pour l&apos;instant</p>
-                  <p className="text-xs text-gray-400 font-medium mb-4">Ajoute ton premier contact acheteur.</p>
-                  <button
-                    onClick={() => { setCreateForm({ ...EMPTY_NEW }); setShowCreate(true) }}
-                    className="inline-flex items-center gap-2 bg-indigo-600 text-white font-bold text-sm px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors"
-                  >
-                    + Ajouter mon premier prospect
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center py-16 text-gray-400">
-                  <p className="text-sm font-medium">Aucun prospect dans cette catégorie.</p>
+
+                  {/* DÉTAIL — visible si ouvert */}
+                  {isOpen && (
+                    <div className="px-5 pb-5 border-t border-gray-100">
+                      {/* Actions */}
+                      <div className="flex gap-2 justify-end pt-3 mb-4">
+                        <button onClick={() => openEdit(p)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 transition-colors text-xs font-bold">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                          Modifier
+                        </button>
+                        <button onClick={() => setConfirmDelete(p.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors text-xs font-bold">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          Supprimer
+                        </button>
+                      </div>
+
+                      {/* Infos en grille */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                        {[
+                          { label: "Téléphone", value: p.telephone || "—" },
+                          { label: "Email", value: p.email || "—" },
+                          { label: "Budget max", value: `${p.budget.toLocaleString("fr-FR")} €` },
+                          { label: "Rappel", value: p.rappel ? new Date(p.rappel).toLocaleDateString("fr-FR") : "—" },
+                        ].map(item => (
+                          <div key={item.label}>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{item.label}</p>
+                            <p className="text-sm font-semibold text-gray-900 truncate">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {p.criteres && (
+                        <div className="mb-4">
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Critères</p>
+                          <p className="text-sm font-medium text-gray-700 bg-gray-50 rounded-xl px-3 py-2.5">{p.criteres}</p>
+                        </div>
+                      )}
+
+                      {p.biensVisites.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Biens visités</p>
+                          <div className="flex flex-col gap-1">
+                            {p.biensVisites.map(b => (
+                              <span key={b} className="text-sm font-medium text-gray-700 bg-gray-50 rounded-lg px-3 py-2">📍 {b}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Changer statut */}
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Statut</p>
+                        <div className="flex gap-2 flex-wrap">
+                          {(Object.keys(statutConfig) as StatutProspect[]).map(s => (
+                            <button key={s} onClick={() => updateStatut(p.id, s)}
+                              className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${p.statut === s ? statutConfig[s].classes + " ring-2 ring-offset-1 ring-indigo-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                              {statutConfig[s].label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
-            )}
-            {filtered.map(p => (
-              <button
-                key={p.id}
-                onClick={() => setDetail(p)}
-                className={`text-left p-4 rounded-2xl border transition-all ${detail?.id === p.id ? "bg-indigo-600 border-indigo-600 text-white" : "bg-white border-gray-200 hover:border-indigo-200"}`}
-              >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className={`font-bold text-sm ${detail?.id === p.id ? "text-white" : "text-gray-900"}`}>{p.nom}</p>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${detail?.id === p.id ? "bg-white/20 text-white" : statutConfig[p.statut].classes}`}>
-                    {statutConfig[p.statut].label}
-                  </span>
-                </div>
-                <p className={`text-xs font-medium truncate ${detail?.id === p.id ? "text-indigo-200" : "text-gray-500"}`}>{p.criteres}</p>
-                <p className={`text-xs font-bold mt-1 ${detail?.id === p.id ? "text-indigo-200" : "text-indigo-600"}`}>{p.budget.toLocaleString("fr-FR")} €</p>
-                {p.rappel && (() => {
-                  const rs = getRappelStatus(p.rappel)
-                  const isSelected = detail?.id === p.id
-                  return (
-                    <p className={`text-xs mt-2 font-bold ${
-                      isSelected ? "text-indigo-200" :
-                      rs === "overdue" ? "text-red-600" :
-                      rs === "today" ? "text-amber-600" : "text-gray-400"
-                    }`}>
-                      {rs === "overdue" ? "🔴" : rs === "today" ? "🔔" : "📅"} {
-                        rs === "overdue" ? "En retard · " :
-                        rs === "today" ? "Aujourd'hui · " : ""
-                      }{new Date(p.rappel).toLocaleDateString("fr-FR")}
-                    </p>
-                  )
-                })()}
-              </button>
-            ))}
+            })}
           </div>
-
-          {/* DÉTAIL */}
-          <div className="col-span-3">
-            {detail ? (
-              <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-extrabold text-gray-900">{detail.nom}</h2>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full mt-2 inline-block ${statutConfig[detail.statut].classes}`}>
-                      {statutConfig[detail.statut].label}
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => openEdit(detail)} className="p-2 rounded-lg hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition-colors" title="Modifier">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                    </button>
-                    <button onClick={() => setConfirmDelete(detail.id)} className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors" title="Supprimer">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  {[
-                    { label: "Téléphone", value: detail.telephone || "—" },
-                    { label: "Email", value: detail.email || "—" },
-                    { label: "Budget max", value: `${detail.budget.toLocaleString("fr-FR")} €` },
-                    { label: "Rappel", value: detail.rappel ? new Date(detail.rappel).toLocaleDateString("fr-FR") : "—" },
-                  ].map(item => (
-                    <div key={item.label}>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{item.label}</p>
-                      <p className="text-sm font-semibold text-gray-900">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {detail.criteres && (
-                  <div className="mb-6">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Critères de recherche</p>
-                    <p className="text-sm font-medium text-gray-700 bg-gray-50 rounded-xl p-3">{detail.criteres}</p>
-                  </div>
-                )}
-
-                {detail.biensVisites.length > 0 && (
-                  <div className="mb-6">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Biens visités</p>
-                    <div className="flex flex-col gap-1">
-                      {detail.biensVisites.map(b => (
-                        <span key={b} className="text-sm font-medium text-gray-700 bg-gray-50 rounded-lg px-3 py-2">📍 {b}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Changer le statut</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {(Object.keys(statutConfig) as StatutProspect[]).map(s => (
-                      <button
-                        key={s}
-                        onClick={() => updateStatut(detail.id, s)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${detail.statut === s ? statutConfig[s].classes + " ring-2 ring-offset-1 ring-indigo-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-                      >
-                        {statutConfig[s].label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl border border-gray-200 flex items-center justify-center h-64 text-gray-300">
-                <div className="text-center">
-                  <svg className="w-10 h-10 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <p className="text-sm font-medium">Sélectionne un prospect pour voir sa fiche</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* MODAL CONFIRMATION SUPPRESSION */}
@@ -548,6 +561,29 @@ export default function ProspectsPage() {
                   {editing ? "Enregistrement..." : "Sauvegarder les modifications"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIRMATION BULK DELETE */}
+      {confirmBulk && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-xl">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center mb-5">
+              <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">Supprimer {selectedProspects.size} prospect{selectedProspects.size > 1 ? "s" : ""} ?</h3>
+            <p className="text-sm text-gray-500 font-medium mb-6">Cette action est irréversible. Les prospects sélectionnés seront définitivement supprimés.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmBulk(false)} className="flex-1 py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-gray-400 transition-colors">
+                Annuler
+              </button>
+              <button onClick={handleBulkDelete} className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-colors">
+                Supprimer
+              </button>
             </div>
           </div>
         </div>

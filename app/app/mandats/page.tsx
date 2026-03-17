@@ -52,6 +52,8 @@ export default function MandatsPage() {
   const [saving, setSaving] = useState(false)
   const [planLimit, setPlanLimit] = useState<number | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [confirmBulk, setConfirmBulk] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   function showToast(msg: string) {
@@ -132,6 +134,18 @@ export default function MandatsPage() {
     showToast("Mandat supprimé")
   }
 
+  async function handleBulkDelete() {
+    await Promise.all([...selected].map(id => fetch(`/api/mandats/${id}`, { method: "DELETE" })))
+    setMandats(prev => prev.filter(m => !selected.has(m.id)))
+    showToast(`${selected.size} mandat${selected.size > 1 ? "s" : ""} supprimé${selected.size > 1 ? "s" : ""}`)
+    setSelected(new Set())
+    setConfirmBulk(false)
+  }
+
+  function toggleSelect(id: string) {
+    setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  }
+
   const f = (field: keyof Mandat) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const val = e.target.type === "number" ? Number(e.target.value) : e.target.value
     setForm(prev => ({ ...prev, [field]: val }))
@@ -144,16 +158,20 @@ export default function MandatsPage() {
       {/* TOPBAR */}
       <nav className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-40">
         <h1 className="text-lg font-extrabold text-gray-900">Mandats</h1>
-        <div>
+        <div className="flex items-center gap-3">
+          {selected.size > 0 && (
+            <button onClick={() => setConfirmBulk(true)}
+              className="bg-red-500 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-red-600 transition-colors">
+              Supprimer ({selected.size})
+            </button>
+          )}
           {planLimit !== null && mandats.length >= planLimit ? (
             <a href="/pricing" className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors">
               Passer au Pro →
             </a>
           ) : (
-            <button
-              onClick={() => { setForm(EMPTY); setShowForm(true) }}
-              className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors"
-            >
+            <button onClick={() => { setForm(EMPTY); setShowForm(true) }}
+              className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors">
               + Nouveau mandat
             </button>
           )}
@@ -212,7 +230,10 @@ export default function MandatsPage() {
         ) : (
           <div className="flex flex-col gap-3">
             {filtered.map(m => (
-              <div key={m.id} className="bg-white rounded-2xl border border-gray-200 p-5 flex items-center gap-5 hover:border-fuchsia-200 transition-colors group">
+              <div key={m.id} className={`bg-white rounded-2xl border p-5 flex items-center gap-5 transition-colors group ${selected.has(m.id) ? "border-red-300 bg-red-50" : "border-gray-200 hover:border-fuchsia-200"}`}>
+                <input type="checkbox" checked={selected.has(m.id)} onChange={() => toggleSelect(m.id)}
+                  onClick={e => e.stopPropagation()}
+                  className="w-4 h-4 rounded accent-red-500 shrink-0 cursor-pointer" />
                 <div className="w-20 h-20 rounded-xl bg-gray-100 shrink-0 flex items-center justify-center text-gray-300">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 3l9 6.75V21H3V9.75z" />
@@ -441,6 +462,29 @@ export default function MandatsPage() {
                 className="flex-1 py-3 bg-fuchsia-600 text-white font-bold rounded-xl text-sm hover:bg-fuchsia-700 transition-colors disabled:opacity-60"
               >
                 {saving ? "Enregistrement..." : form.id ? "Enregistrer" : "Ajouter"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIRMATION BULK DELETE */}
+      {confirmBulk && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-xl">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center mb-5">
+              <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">Supprimer {selected.size} mandat{selected.size > 1 ? "s" : ""} ?</h3>
+            <p className="text-sm text-gray-500 font-medium mb-6">Cette action est irréversible. Les mandats sélectionnés seront définitivement supprimés.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmBulk(false)} className="flex-1 py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-gray-400 transition-colors">
+                Annuler
+              </button>
+              <button onClick={handleBulkDelete} className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-colors">
+                Supprimer
               </button>
             </div>
           </div>
