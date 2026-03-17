@@ -1,16 +1,26 @@
 import { prisma } from "@/lib/prisma"
 import { parseProspectCriteres } from "@/lib/parseProspectCriteres"
+import { getAuthUser } from "@/lib/authServer"
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authUser = await getAuthUser(request)
+  if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
+
   const { id } = await params
   const body = await request.json()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id: _id, userId: _userId, createdAt: _c, updatedAt: _u, criteresParses: _cp, ...data } = body
 
-  try {
-    const existing = await prisma.prospect.findUnique({ where: { id }, select: { criteres: true } })
-    const criteresChanged = existing?.criteres !== data.criteres
+  const user = await prisma.user.findUnique({ where: { email: authUser.email } })
+  if (!user) return Response.json({ error: "Utilisateur introuvable" }, { status: 404 })
 
+  const existing = await prisma.prospect.findUnique({ where: { id } })
+  if (!existing || existing.userId !== user.id) {
+    return Response.json({ error: "Non autorisé" }, { status: 403 })
+  }
+
+  try {
+    const criteresChanged = existing.criteres !== data.criteres
     const prospect = await prisma.prospect.update({ where: { id }, data })
 
     // Re-parse if criteres changed
@@ -30,8 +40,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authUser = await getAuthUser(request)
+  if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
+
   const { id } = await params
+
+  const user = await prisma.user.findUnique({ where: { email: authUser.email } })
+  if (!user) return Response.json({ error: "Utilisateur introuvable" }, { status: 404 })
+
+  const prospect = await prisma.prospect.findUnique({ where: { id } })
+  if (!prospect || prospect.userId !== user.id) {
+    return Response.json({ error: "Non autorisé" }, { status: 403 })
+  }
+
   await prisma.prospect.delete({ where: { id } })
   return Response.json({ success: true })
 }

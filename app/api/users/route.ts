@@ -1,22 +1,22 @@
 import { prisma } from "@/lib/prisma"
+import { getAuthUser } from "@/lib/authServer"
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const email = searchParams.get("email")
+  const authUser = await getAuthUser(request)
+  if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
 
-  if (email) {
-    const user = await prisma.user.findUnique({ where: { email } })
-    return Response.json(user)
-  }
-
-  const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } })
-  return Response.json(users)
+  const user = await prisma.user.findUnique({ where: { email: authUser.email } })
+  return Response.json(user)
 }
 
 export async function PATCH(request: Request) {
-  const { email, name } = await request.json()
-  if (!email || !name) return Response.json({ error: "email et name requis" }, { status: 400 })
-  const user = await prisma.user.update({ where: { email }, data: { name } })
+  const authUser = await getAuthUser(request)
+  if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
+
+  const { name } = await request.json()
+  if (!name) return Response.json({ error: "name requis" }, { status: 400 })
+
+  const user = await prisma.user.update({ where: { email: authUser.email }, data: { name } })
   return Response.json(user)
 }
 

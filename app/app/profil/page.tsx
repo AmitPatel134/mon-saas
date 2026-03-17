@@ -6,6 +6,7 @@ import Toast from "@/components/Toast"
 
 export default function ProfilPage() {
   const [ready, setReady] = useState(false)
+  const [token, setToken] = useState("")
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
   const [plan, setPlan] = useState("free")
@@ -25,9 +26,10 @@ export default function ProfilPage() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const userEmail = session.user.email ?? ""
-      setEmail(userEmail)
-      const user = await fetch(`/api/users?email=${encodeURIComponent(userEmail)}`).then(r => r.json())
+      setEmail(session.user.email ?? "")
+      const tok = session.access_token
+      setToken(tok)
+      const user = await fetch("/api/users", { headers: { Authorization: `Bearer ${tok}` } }).then(r => r.json())
       if (user?.name) setName(user.name)
       if (user?.plan) setPlan(user.plan)
       setReady(true)
@@ -40,8 +42,8 @@ export default function ProfilPage() {
     setSavingName(true)
     const res = await fetch("/api/users", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name: name.trim() }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: name.trim() }),
     })
     setSavingName(false)
     if (res.ok) showToast("Nom mis à jour ✓")
@@ -70,8 +72,7 @@ export default function ProfilPage() {
     setBillingLoading(true)
     const res = await fetch("/api/billing-portal", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     })
     const { url, error } = await res.json()
     setBillingLoading(false)

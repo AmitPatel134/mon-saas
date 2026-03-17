@@ -34,7 +34,7 @@ function normalize(p: Prospect & { rappel?: string | null }) {
 
 export default function ProspectsPage() {
   const [ready, setReady] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
+  const [token, setToken] = useState("")
   const [prospects, setProspects] = useState<Prospect[]>([])
   const [planLimit, setPlanLimit] = useState<number | null>(null)
   const [filtre, setFiltre] = useState<StatutProspect | "tous">("tous")
@@ -75,11 +75,12 @@ export default function ProspectsPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const email = session.user.email ?? ""
-      setUserEmail(email)
+      const tok = session.access_token
+      setToken(tok)
+      const headers = { Authorization: `Bearer ${tok}` }
       Promise.all([
-        fetch(`/api/prospects?email=${encodeURIComponent(email)}`).then(r => r.json()),
-        fetch(`/api/plan?email=${encodeURIComponent(email)}`).then(r => r.json()),
+        fetch("/api/prospects", { headers }).then(r => r.json()),
+        fetch("/api/plan", { headers }).then(r => r.json()),
       ]).then(([prospectsData, planData]) => {
         setProspects(Array.isArray(prospectsData) ? prospectsData.map(normalize) : [])
         setPlanLimit(planData.limits?.prospects ?? null)
@@ -116,12 +117,11 @@ export default function ProspectsPage() {
     setCreating(true)
     const res = await fetch("/api/prospects", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         ...createForm,
         rappel: createForm.rappel ? new Date(createForm.rappel).toISOString() : null,
         biensVisites: [],
-        userEmail,
       }),
     })
     if (res.status === 403) {
@@ -149,7 +149,7 @@ export default function ProspectsPage() {
     setEditing(true)
     const res = await fetch(`/api/prospects/${editForm.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         ...editForm,
         rappel: editForm.rappel ? new Date(editForm.rappel).toISOString() : null,
@@ -167,7 +167,7 @@ export default function ProspectsPage() {
 
   // --- SUPPRESSION ---
   async function handleDelete(id: string) {
-    await fetch(`/api/prospects/${id}`, { method: "DELETE" })
+    await fetch(`/api/prospects/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
     setProspects(ps => ps.filter(p => p.id !== id))
     setConfirmDelete(null)
     if (detail?.id === id) setDetail(null)
@@ -175,7 +175,7 @@ export default function ProspectsPage() {
   }
 
   async function handleBulkDelete() {
-    await Promise.all([...selectedProspects].map(id => fetch(`/api/prospects/${id}`, { method: "DELETE" })))
+    await Promise.all([...selectedProspects].map(id => fetch(`/api/prospects/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })))
     setProspects(ps => ps.filter(p => !selectedProspects.has(p.id)))
     if (detail && selectedProspects.has(detail.id)) setDetail(null)
     showToast(`${selectedProspects.size} prospect${selectedProspects.size > 1 ? "s" : ""} supprimé${selectedProspects.size > 1 ? "s" : ""}`)

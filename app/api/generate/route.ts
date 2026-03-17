@@ -2,6 +2,7 @@ import Groq from "groq-sdk"
 import { prisma } from "@/lib/prisma"
 import { getLimit, isPro } from "@/lib/plans"
 import { createRateLimiter } from "@/lib/rate-limit"
+import { getAuthUser } from "@/lib/authServer"
 import { NextRequest } from "next/server"
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -10,8 +11,11 @@ const rateLimit = createRateLimiter({ maxRequests: 10, windowMs: 60_000 })
 export async function POST(request: NextRequest) {
   const limited = rateLimit(request)
   if (limited) return limited
-  const { mandat, mode, portail, email, ton = "professionnel", longueur = "standard", instructions = "", visiteData, userName } = await request.json()
 
+  const authUser = await getAuthUser(request)
+  const { mandat, mode, portail, ton = "professionnel", longueur = "standard", instructions = "", visiteData, userName } = await request.json()
+
+  const email = authUser?.email
   if (email) {
     const user = await prisma.user.findUnique({ where: { email } })
     if (user && !isPro(user.plan)) {

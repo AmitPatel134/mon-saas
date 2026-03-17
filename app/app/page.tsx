@@ -63,9 +63,9 @@ export default function AppPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const userEmail = session.user.email ?? ""
-      setEmail(userEmail)
-      fetch(`/api/dashboard?email=${encodeURIComponent(userEmail)}`)
+      setEmail(session.user.email ?? "")
+      const token = session.access_token
+      fetch("/api/dashboard", { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.json())
         .then(d => { setData(d); setReady(true) })
     })

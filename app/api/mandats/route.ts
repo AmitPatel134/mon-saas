@@ -1,12 +1,14 @@
 import { prisma } from "@/lib/prisma"
 import { getLimit, isPro } from "@/lib/plans"
+import { getAuthUser } from "@/lib/authServer"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const email = searchParams.get("email")
-  if (!email) return Response.json({ error: "email requis" }, { status: 400 })
+  const authUser = await getAuthUser(request)
+  if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
 
-  const user = await prisma.user.findUnique({ where: { email } })
+  const user = await prisma.user.findUnique({ where: { email: authUser.email } })
   if (!user) return Response.json([])
 
   const mandats = await prisma.mandat.findMany({
@@ -17,14 +19,16 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const authUser = await getAuthUser(request)
+  if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
+
   const body = await request.json()
-  const { userEmail, id: _id, ...data } = body
-  if (!userEmail) return Response.json({ error: "userEmail requis" }, { status: 400 })
+  const { id: _id, userEmail: _ue, ...data } = body
 
   const user = await prisma.user.upsert({
-    where: { email: userEmail },
+    where: { email: authUser.email },
     update: {},
-    create: { email: userEmail },
+    create: { email: authUser.email },
   })
 
   if (!isPro(user.plan)) {

@@ -10,7 +10,7 @@ type Step = "upload" | "analyzing" | "preview" | "importing" | "done"
 
 export default function ImportPage() {
   const [ready, setReady] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
+  const [token, setToken] = useState("")
   const [step, setStep] = useState<Step>("upload")
   const [entityType, setEntityType] = useState<EntityType>("mandats")
   const [fileName, setFileName] = useState("")
@@ -28,7 +28,7 @@ export default function ImportPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      setUserEmail(session.user.email ?? "")
+      setToken(session.access_token)
       setReady(true)
     })
   }, [])
@@ -85,8 +85,8 @@ export default function ImportPage() {
     setStep("importing")
     const res = await fetch("/api/import/confirm", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: userEmail, entityType, rows }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ entityType, rows }),
     })
     if (res.ok) setStep("done")
     else { showToast("Erreur lors de l'import"); setStep("preview") }

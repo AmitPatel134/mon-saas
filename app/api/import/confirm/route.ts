@@ -1,13 +1,17 @@
 import { prisma } from "@/lib/prisma"
 import { parseBatchCriteres } from "@/lib/parseProspectCriteres"
+import { getAuthUser } from "@/lib/authServer"
 
 export async function POST(request: Request) {
-  const { email, entityType, rows } = await request.json()
-  if (!email || !entityType || !rows?.length) {
-    return Response.json({ error: "email, entityType et rows requis" }, { status: 400 })
+  const authUser = await getAuthUser(request)
+  if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
+
+  const { entityType, rows } = await request.json()
+  if (!entityType || !rows?.length) {
+    return Response.json({ error: "entityType et rows requis" }, { status: 400 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email } })
+  const user = await prisma.user.findUnique({ where: { email: authUser.email } })
   if (!user) return Response.json({ error: "Utilisateur introuvable" }, { status: 404 })
 
   if (entityType === "mandats") {

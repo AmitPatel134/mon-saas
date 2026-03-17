@@ -43,7 +43,7 @@ const EMPTY: Mandat = {
 
 export default function MandatsPage() {
   const [ready, setReady] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
+  const [token, setToken] = useState("")
   const [mandats, setMandats] = useState<Mandat[]>([])
   const [filtre, setFiltre] = useState<Statut | "tous">("tous")
   const [search, setSearch] = useState("")
@@ -74,11 +74,12 @@ export default function MandatsPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const email = session.user.email ?? ""
-      setUserEmail(email)
+      const tok = session.access_token
+      setToken(tok)
+      const headers = { Authorization: `Bearer ${tok}` }
       Promise.all([
-        fetch(`/api/mandats?email=${encodeURIComponent(email)}`).then(r => r.json()),
-        fetch(`/api/plan?email=${encodeURIComponent(email)}`).then(r => r.json()),
+        fetch("/api/mandats", { headers }).then(r => r.json()),
+        fetch("/api/plan", { headers }).then(r => r.json()),
       ]).then(([mandatsData, planData]) => {
         setMandats(Array.isArray(mandatsData) ? mandatsData : [])
         setPlanLimit(planData.limits?.mandats ?? null)
@@ -101,7 +102,7 @@ export default function MandatsPage() {
     if (form.id) {
       const res = await fetch(`/api/mandats/${form.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
       })
       const updated = await res.json()
@@ -109,8 +110,8 @@ export default function MandatsPage() {
     } else {
       const res = await fetch("/api/mandats", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, userEmail }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(form),
       })
       if (res.status === 403) {
         setSaving(false)
@@ -128,14 +129,14 @@ export default function MandatsPage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch(`/api/mandats/${id}`, { method: "DELETE" })
+    await fetch(`/api/mandats/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
     setMandats(prev => prev.filter(m => m.id !== id))
     setConfirmDelete(null)
     showToast("Mandat supprimé")
   }
 
   async function handleBulkDelete() {
-    await Promise.all([...selected].map(id => fetch(`/api/mandats/${id}`, { method: "DELETE" })))
+    await Promise.all([...selected].map(id => fetch(`/api/mandats/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })))
     setMandats(prev => prev.filter(m => !selected.has(m.id)))
     showToast(`${selected.size} mandat${selected.size > 1 ? "s" : ""} supprimé${selected.size > 1 ? "s" : ""}`)
     setSelected(new Set())

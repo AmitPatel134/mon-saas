@@ -1,0 +1,16 @@
+Type bien,Adresse,Commune,Surface m2,Nb pieces,Prix vente,Etat dossier,Etage,Expo,Chauffage,Classe energie,Etat general,Charges mois,Annee construction,Garage,Cave,Terrasse,Ascenseur,Remarques
+Appartement,12 rue des Lilas,Paris 11,67,3,450000,actif,3,Sud,Gaz,C,bon état,180,1985,non,oui,non,oui,Très lumineux proche métro Voltaire
+Maison,8 chemin du Moulin,Versailles,145,6,890000,disponible,,Sud-Ouest,Pompe à chaleur,B,excellent,,,2005,oui,non,oui,non,Jardin 400m2 piscine
+Studio,3 bd Voltaire,Paris 11,28,1,195000,actif,5,,Electrique,E,passable,95,1965,non,non,non,oui,Idéal investissement locatif
+Appartement,45 av Victor Hugo,Neuilly-sur-Seine,120,5,1250000,dispo,2,Ouest,Gaz,A,très bon,450,2010,oui,oui,oui,oui,Gardien standing
+Maison,17 rue du Parc,Vincennes,185,7,1100000,disponible,,,Géothermie,A,neuf,,2019,oui,non,oui,non,Maison neuve BBC
+Appartement,9 impasse des Roses,Montreuil,52,2,285000,actif,1,Nord,Electrique,F,moyen,120,1972,non,oui,non,non,Travaux à prévoir
+Loft,23 rue de la Forge,Saint-Denis,95,3,380000,dispo,0,,Climatisation réversible,D,bon,200,1920,non,non,oui,non,Ancien atelier industriel
+Appartement,78 cours de Vincennes,Paris 12,84,4,620000,actif,4,Est,Gaz,C,bon,280,1930,non,oui,non,non,Parquet ancien beau volume
+Maison,2 rue de la Gare,Fontenay-sous-Bois,130,5,750000,disponible,,,Fioul,D,à rafraichir,,1978,oui,oui,non,non,Double garage terrain 300m2
+Studio,56 rue Oberkampf,Paris 11,19,1,165000,actif,6,,Electrique,G,mauvais,45,1968,non,non,non,oui,Dernier étage vue dégagée mais DPE catastrophique
+Appartement,34 allée des Acacias,Boulogne-Billancourt,98,4,850000,dispo,3,Sud,Gaz,B,très bon,320,2001,oui,non,oui,oui,Résidence sécurisée
+Maison,11 rue Gambetta,Ivry-sur-Seine,110,5,595000,actif,,,Poêle + électrique,E,moyen,,1955,non,non,non,non,A rénover entièrement prix en conséquence
+Appartement,66 rue de Rivoli,Paris 4,55,2,780000,disponible,2,Sud,Gaz,C,bon état,210,1880,non,oui,non,non,Immeuble haussmannien vue sur Seine
+Local commercial,4 rue du Commerce,Vincennes,65,2,320000,dispo,0,,Climatisation,,,150,1990,non,non,non,non,Bail commercial possible
+Appartement,29 rue Nationale,Charenton-le-Pont,73,3,420000,actif,1,Nord-Ouest,Electrique,D,correct,160,1975,non,oui,non,oui,Proche RER A

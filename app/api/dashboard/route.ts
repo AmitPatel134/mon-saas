@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma"
+import { getAuthUser } from "@/lib/authServer"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const email = searchParams.get("email")
-  if (!email) return Response.json({ error: "email requis" }, { status: 400 })
+  const authUser = await getAuthUser(request)
+  if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
 
-  const user = await prisma.user.findUnique({ where: { email } })
+  const user = await prisma.user.findUnique({ where: { email: authUser.email } })
   if (!user) {
     return Response.json({
       mandats: [],

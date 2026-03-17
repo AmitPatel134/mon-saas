@@ -99,7 +99,7 @@ const FILTRES = [
 
 export default function GenerationPage() {
   const [ready, setReady] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
+  const [token, setToken] = useState("")
   const [userName, setUserName] = useState("")
   const [mandats, setMandats] = useState<Mandat[]>([])
   const [planLimit, setPlanLimit] = useState<number | null>(null)
@@ -144,13 +144,14 @@ export default function GenerationPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const email = session.user.email ?? ""
-      setUserEmail(email)
+      const tok = session.access_token
+      setToken(tok)
+      const headers = { Authorization: `Bearer ${tok}` }
       Promise.all([
-        fetch(`/api/mandats?email=${encodeURIComponent(email)}`).then(r => r.json()),
-        fetch(`/api/plan?email=${encodeURIComponent(email)}`).then(r => r.json()),
-        fetch(`/api/generations?email=${encodeURIComponent(email)}`).then(r => r.json()),
-        fetch(`/api/users?email=${encodeURIComponent(email)}`).then(r => r.json()),
+        fetch("/api/mandats", { headers }).then(r => r.json()),
+        fetch("/api/plan", { headers }).then(r => r.json()),
+        fetch("/api/generations", { headers }).then(r => r.json()),
+        fetch("/api/users", { headers }).then(r => r.json()),
       ]).then(([mandatsData, planData, genData, userData]) => {
         const mList = Array.isArray(mandatsData) ? mandatsData : []
         setMandats(mList)
@@ -192,12 +193,11 @@ export default function GenerationPage() {
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           mandat,
           mode,
           portail: portailForMode,
-          email: userEmail,
           ton,
           longueur,
           instructions: instructions.trim(),
@@ -217,7 +217,7 @@ export default function GenerationPage() {
       const portailLabel = portailForMode ? ` · ${portailForMode}` : ""
       setResultLabel(`${modeLabel}${portailLabel}`)
       setGenCount(c => c + 1)
-      const updated = await fetch(`/api/generations?email=${encodeURIComponent(userEmail)}`).then(r => r.json())
+      const updated = await fetch("/api/generations", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
       setHistorique(Array.isArray(updated) ? updated : [])
     } catch {
       setError("Une erreur est survenue.")
@@ -227,13 +227,13 @@ export default function GenerationPage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch(`/api/generations/${id}`, { method: "DELETE" })
+    await fetch(`/api/generations/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
     setHistorique(prev => prev.filter(h => h.id !== id))
     if (selected?.id === id) { setSelected(null); setResult(""); setResultLabel("") }
   }
 
   async function handleBulkDelete() {
-    await Promise.all([...selectedGens].map(id => fetch(`/api/generations/${id}`, { method: "DELETE" })))
+    await Promise.all([...selectedGens].map(id => fetch(`/api/generations/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })))
     setHistorique(prev => prev.filter(h => !selectedGens.has(h.id)))
     if (selected && selectedGens.has(selected.id)) { setSelected(null); setResult(""); setResultLabel("") }
     showToast(`${selectedGens.size} génération${selectedGens.size > 1 ? "s" : ""} supprimée${selectedGens.size > 1 ? "s" : ""}`)

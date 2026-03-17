@@ -76,7 +76,7 @@ function ScoreBadge({ score }: { score: number }) {
 
 export default function MatchingPage() {
   const [ready, setReady] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
+  const [token, setToken] = useState("")
   const [mandats, setMandats] = useState<Mandat[]>([])
   const [selectedMandat, setSelectedMandat] = useState<Mandat | null>(null)
   const [matches, setMatches] = useState<ProspectMatch[]>([])
@@ -86,9 +86,9 @@ export default function MatchingPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = "/login"; return }
-      const email = session.user.email ?? ""
-      setUserEmail(email)
-      fetch(`/api/mandats?email=${encodeURIComponent(email)}`)
+      const tok = session.access_token
+      setToken(tok)
+      fetch("/api/mandats", { headers: { Authorization: `Bearer ${tok}` } })
         .then(r => r.json())
         .then(data => {
           setMandats(Array.isArray(data) ? data : [])
@@ -101,7 +101,7 @@ export default function MatchingPage() {
     setSelectedMandat(mandat)
     setLoading(true)
     setMatches([])
-    const data = await fetch(`/api/matching/${mandat.id}?email=${encodeURIComponent(userEmail)}`).then(r => r.json())
+    const data = await fetch(`/api/matching/${mandat.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
     setMatches(Array.isArray(data) ? data : [])
     setLoading(false)
   }
