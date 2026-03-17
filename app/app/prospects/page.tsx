@@ -39,6 +39,7 @@ export default function ProspectsPage() {
   const [prospects, setProspects] = useState<Prospect[]>([])
   const [planLimit, setPlanLimit] = useState<number | null>(null)
   const [filtre, setFiltre] = useState<StatutProspect | "tous">("tous")
+  const [search, setSearch] = useState("")
   const [detail, setDetail] = useState<Prospect | null>(null)
 
   // Modal création
@@ -101,7 +102,12 @@ export default function ProspectsPage() {
   }
 
   const filtered = prospects
-    .filter(p => filtre === "tous" || p.statut === filtre)
+    .filter(p => {
+      const matchFiltre = filtre === "tous" || p.statut === filtre
+      const q = search.toLowerCase()
+      const matchSearch = !q || `${p.nom} ${p.criteres ?? ""} ${p.telephone ?? ""} ${p.email ?? ""}`.toLowerCase().includes(q)
+      return matchFiltre && matchSearch
+    })
     .sort((a, b) => {
       const ra = getRappelStatus(a.rappel)
       const rb = getRappelStatus(b.rappel)
@@ -258,8 +264,14 @@ export default function ProspectsPage() {
 
         <PlanBanner usage={prospects.length} limit={planLimit} label="Prospects" />
 
-        {/* FILTRES */}
+        {/* FILTRES + RECHERCHE */}
         <div className="flex items-center gap-3 mb-8 flex-wrap">
+          <input
+            placeholder="Rechercher un prospect..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="flex-1 min-w-48 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-indigo-400 transition-colors"
+          />
           {(["tous", "nouveau", "en-recherche", "chaud", "signé"] as const).map(f => (
             <button
               key={f}
