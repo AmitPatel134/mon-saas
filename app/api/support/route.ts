@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function POST(request: Request) {
   const { name, email, subject, message } = await request.json()
 
-  await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: "CleoAI Support <support@cleoai.fr>",
     to: "cleoai.saas@gmail.com",
     replyTo: email,
@@ -26,5 +26,11 @@ export async function POST(request: Request) {
     `,
   })
 
+  if (error) {
+    console.error("[support] Resend error:", error)
+    return Response.json({ error: error.message }, { status: 500 })
+  }
+
+  console.log("[support] Email sent:", data?.id)
   return Response.json({ ok: true })
 }
