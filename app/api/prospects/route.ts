@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { getLimit, isPro } from "@/lib/plans"
+import { parseProspectCriteres } from "@/lib/parseProspectCriteres"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -39,6 +40,17 @@ export async function POST(request: Request) {
     const prospect = await prisma.prospect.create({
       data: { ...data, userId: user.id },
     })
+
+    // Parse criteria in background (don't block response)
+    if (prospect.criteres) {
+      parseProspectCriteres(prospect.criteres, prospect.budget).then(parsed => {
+        prisma.prospect.update({
+          where: { id: prospect.id },
+          data: { criteresParses: parsed as object },
+        }).catch(() => {})
+      }).catch(() => {})
+    }
+
     return Response.json(prospect, { status: 201 })
   } catch (e) {
     console.error("prospect create error", e)

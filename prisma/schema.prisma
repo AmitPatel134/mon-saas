@@ -58,9 +58,10 @@ model Prospect {
   criteres     String?
   statut       String    @default("nouveau")
   rappel       DateTime?
-  biensVisites String[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  biensVisites   String[]
+  criteresParses Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model Generation {

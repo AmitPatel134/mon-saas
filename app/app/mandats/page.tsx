@@ -233,7 +233,7 @@ export default function MandatsPage() {
               <div key={m.id} className={`bg-white rounded-2xl border p-5 flex items-center gap-5 transition-colors group ${selected.has(m.id) ? "border-red-300 bg-red-50" : "border-gray-200 hover:border-fuchsia-200"}`}>
                 <input type="checkbox" checked={selected.has(m.id)} onChange={() => toggleSelect(m.id)}
                   onClick={e => e.stopPropagation()}
-                  className="w-4 h-4 rounded accent-red-500 shrink-0 cursor-pointer" />
+                  className={`w-4 h-4 rounded accent-red-500 shrink-0 cursor-pointer transition-opacity ${selected.has(m.id) ? "opacity-100" : "opacity-30"}`} />
                 <div className="w-20 h-20 rounded-xl bg-gray-100 shrink-0 flex items-center justify-center text-gray-300">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.75L12 3l9 6.75V21H3V9.75z" />

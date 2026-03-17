@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { parseBatchCriteres } from "@/lib/parseProspectCriteres"
 
 export async function POST(request: Request) {
   const { email, entityType, rows } = await request.json()
@@ -35,17 +36,40 @@ export async function POST(request: Request) {
       })),
     })
   } else {
-    await prisma.prospect.createMany({
-      data: rows.map((r: Record<string, unknown>) => ({
-        userId: user.id,
-        nom: String(r.nom ?? ""),
-        telephone: r.telephone ? String(r.telephone) : null,
-        email: r.email ? String(r.email) : null,
-        budget: Number(r.budget) || 0,
-        criteres: r.criteres ? String(r.criteres) : null,
-        statut: String(r.statut ?? "nouveau"),
-      })),
-    })
+    // Prospects : parse criteria via a single batch Groq call
+    const prospectData = rows.map((r: Record<string, unknown>) => ({
+      userId: user.id,
+      nom: String(r.nom ?? ""),
+      telephone: r.telephone ? String(r.telephone) : null,
+      email: r.email ? String(r.email) : null,
+      budget: Number(r.budget) || 0,
+      criteres: r.criteres ? String(r.criteres) : null,
+      statut: String(r.statut ?? "nouveau"),
+    }))
+
+    // Parse all criteria in one Groq call
+    const withCriteres = prospectData.filter(p => p.criteres)
+    let parsedMap: Record<number, object> = {}
+    if (withCriteres.length > 0) {
+      const items = withCriteres.map(p => ({ criteres: p.criteres!, budget: p.budget }))
+      try {
+        const parsedResults = await parseBatchCriteres(items)
+        withCriteres.forEach((_, i) => {
+          const origIdx = prospectData.findIndex(
+            (p, idx) => p.criteres === withCriteres[i].criteres && !parsedMap[idx]
+          )
+          if (origIdx !== -1) parsedMap[origIdx] = parsedResults[i] as object
+        })
+      } catch { /* ignore parse errors, criteria will be parsed lazily */ }
+    }
+
+    await Promise.all(
+      prospectData.map((p, i) =>
+        prisma.prospect.create({
+          data: { ...p, ...(parsedMap[i] ? { criteresParses: parsedMap[i] } : {}) },
+        })
+      )
+    )
   }
 
   return Response.json({ success: true, count: rows.length })

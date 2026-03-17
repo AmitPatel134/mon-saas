@@ -290,7 +290,7 @@ export default function ProspectsPage() {
                     <input type="checkbox" checked={isChecked}
                       onChange={() => toggleSelectProspect(p.id)}
                       onClick={e => e.stopPropagation()}
-                      className="w-4 h-4 rounded accent-red-500 shrink-0 cursor-pointer" />
+                      className={`w-4 h-4 rounded accent-red-500 shrink-0 cursor-pointer transition-opacity ${isChecked ? "opacity-100" : "opacity-30"}`} />
 
                     {/* Nom */}
                     <p className="font-bold text-sm text-gray-900 flex-1 min-w-0 truncate">{p.nom}</p>

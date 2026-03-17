@@ -573,7 +573,7 @@ export default function GenerationPage() {
                     <input type="checkbox" checked={selectedGens.has(h.id)}
                       onChange={() => toggleSelectGen(h.id)}
                       onClick={e => e.stopPropagation()}
-                      className="mt-1 w-4 h-4 rounded accent-red-500 shrink-0 cursor-pointer" />
+                      className={`mt-1 w-4 h-4 rounded accent-red-500 shrink-0 cursor-pointer transition-opacity ${selectedGens.has(h.id) ? "opacity-100" : "opacity-30"}`} />
                     <div className="shrink-0 pt-0.5">
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${badge.classes}`}>
                         {badgeLabel}

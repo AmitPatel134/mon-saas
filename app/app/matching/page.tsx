@@ -40,14 +40,36 @@ const statutProspect: Record<string, { label: string; classes: string }> = {
   "signé": { label: "Signé ✓", classes: "bg-emerald-100 text-emerald-700" },
 }
 
-function ScoreDots({ score }: { score: number }) {
-  const max = 7
-  const filled = Math.min(score, max)
+function ScoreBadge({ score }: { score: number }) {
+  const color =
+    score >= 80 ? "bg-emerald-100 text-emerald-700" :
+    score >= 60 ? "bg-blue-100 text-blue-700" :
+    score >= 40 ? "bg-amber-100 text-amber-700" :
+    "bg-gray-100 text-gray-500"
+
+  const label =
+    score >= 80 ? "Excellent" :
+    score >= 60 ? "Très bon" :
+    score >= 40 ? "Bon" :
+    "Moyen"
+
+  const barColor =
+    score >= 80 ? "bg-emerald-500" :
+    score >= 60 ? "bg-blue-500" :
+    score >= 40 ? "bg-amber-500" :
+    "bg-gray-300"
+
   return (
-    <div className="flex items-center gap-1">
-      {Array.from({ length: max }).map((_, i) => (
-        <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < filled ? "bg-fuchsia-500" : "bg-gray-200"}`} />
-      ))}
+    <div className="flex items-center gap-2 shrink-0">
+      <div className="w-20 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+        <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${score}%` }} />
+      </div>
+      <span className={`text-xs font-extrabold px-2 py-0.5 rounded-lg ${color}`}>
+        {score}/100
+      </span>
+      <span className={`text-xs font-bold hidden sm:inline ${color.split(" ")[1]}`}>
+        {label}
+      </span>
     </div>
   )
 }
@@ -102,7 +124,7 @@ export default function MatchingPage() {
 
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900">Matching mandats / prospects</h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">Sélectionne un mandat pour voir les prospects qui correspondent.</p>
+          <p className="text-sm text-gray-500 font-medium mt-1">Sélectionne un mandat pour voir les prospects qui correspondent — scoring IA sur 100.</p>
         </div>
 
         <div className="grid grid-cols-12 gap-6">
@@ -181,8 +203,9 @@ export default function MatchingPage() {
 
                 {/* Contenu */}
                 {loading ? (
-                  <div className="flex items-center justify-center py-16">
+                  <div className="flex flex-col items-center justify-center py-16 gap-3">
                     <div className="w-6 h-6 border-2 border-gray-200 border-t-fuchsia-600 rounded-full animate-spin" />
+                    <p className="text-xs text-gray-400 font-medium">Analyse IA en cours...</p>
                   </div>
                 ) : matches.length === 0 ? (
                   <div className="px-6 py-16 text-center">
@@ -195,18 +218,18 @@ export default function MatchingPage() {
                   <div className="divide-y divide-gray-50">
                     {matches.map(p => (
                       <div key={p.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between gap-4 mb-1.5">
+                        <div className="flex items-center justify-between gap-4 mb-2">
                           <div className="flex items-center gap-2 min-w-0">
                             <p className="text-sm font-bold text-gray-900 truncate">{p.nom}</p>
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${(statutProspect[p.statut] ?? statutProspect.nouveau).classes}`}>
                               {(statutProspect[p.statut] ?? statutProspect.nouveau).label}
                             </span>
                           </div>
-                          <ScoreDots score={p.score} />
+                          <ScoreBadge score={p.score} />
                         </div>
                         <div className="flex items-end justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs text-gray-500 font-medium mb-2 truncate">{p.criteres || "Aucun critère renseigné"}</p>
+                            <p className="text-xs text-gray-400 font-medium mb-2 truncate">{p.criteres || "Aucun critère renseigné"}</p>
                             <div className="flex flex-wrap gap-1.5">
                               {p.reasons.map((r, i) => (
                                 <span key={i} className="text-xs font-semibold px-2 py-0.5 rounded-md bg-fuchsia-50 text-fuchsia-700">

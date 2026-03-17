@@ -1,4 +1,9 @@
 import { prisma } from "@/lib/prisma"
+import { scoreMatching } from "@/lib/scoreMatching"
+import { parseProspectCriteres } from "@/lib/parseProspectCriteres"
+import type { CriteresParses } from "@/lib/parseProspectCriteres"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(request: Request, { params }: { params: Promise<{ mandatId: string }> }) {
   const { mandatId } = await params
@@ -12,46 +17,39 @@ export async function GET(request: Request, { params }: { params: Promise<{ mand
   const mandat = await prisma.mandat.findUnique({ where: { id: mandatId } })
   if (!mandat) return Response.json({ error: "mandat introuvable" }, { status: 404 })
 
-  const prospects = await prisma.prospect.findMany({
-    where: { userId: user.id },
-  })
+  const prospects = await prisma.prospect.findMany({ where: { userId: user.id } })
 
-  // Score de matching pour chaque prospect
-  const scored = prospects.map(p => {
-    let score = 0
-    const reasons: string[] = []
-
-    // Budget : le prospect peut se permettre le bien (marge de 15%)
-    const prixMin = mandat.prix * 0.85
-    if (p.budget >= prixMin) {
-      score += 3
-      if (p.budget >= mandat.prix) {
-        score += 1
-        reasons.push(`Budget OK (${p.budget.toLocaleString("fr-FR")} €)`)
-      } else {
-        reasons.push(`Budget proche (${p.budget.toLocaleString("fr-FR")} €)`)
+  // Score each prospect
+  const scored = await Promise.all(
+    prospects.map(async p => {
+      // Use stored criteresParses, or parse on-the-fly and save for next time
+      let parsed = p.criteresParses as CriteresParses | null
+      if (!parsed && p.criteres) {
+        parsed = await parseProspectCriteres(p.criteres, p.budget)
+        // Persist for next time (fire-and-forget)
+        prisma.prospect.update({
+          where: { id: p.id },
+          data: { criteresParses: parsed as object },
+        }).catch(() => {})
       }
-    }
 
-    // Critères textuels : ville et type dans les critères du prospect
-    const criteres = (p.criteres ?? "").toLowerCase()
-    if (criteres) {
-      if (criteres.includes(mandat.ville.toLowerCase())) {
-        score += 2
-        reasons.push(`Cherche à ${mandat.ville}`)
+      if (!parsed) {
+        // No criteria at all — score based on budget only
+        const budgetScore =
+          p.budget >= mandat.prix ? 30 :
+          p.budget >= mandat.prix * 0.92 ? 22 :
+          p.budget >= mandat.prix * 0.85 ? 12 : 0
+        return { ...p, score: budgetScore, reasons: budgetScore > 0 ? [`Budget: ${p.budget.toLocaleString("fr-FR")} €`] : [] }
       }
-      if (criteres.includes(mandat.type.toLowerCase())) {
-        score += 1
-        reasons.push(`Cherche un ${mandat.type.toLowerCase()}`)
-      }
-    }
 
-    return { ...p, score, reasons }
-  })
+      const { score, reasons } = scoreMatching(mandat, parsed, p.budget)
+      return { ...p, score, reasons }
+    })
+  )
 
-  // Ne retourner que les prospects avec un score > 0, triés par score
+  // Return prospects with score >= 20, sorted by score desc
   const matches = scored
-    .filter(p => p.score > 0)
+    .filter(p => p.score >= 20)
     .sort((a, b) => b.score - a.score)
 
   return Response.json(matches)
