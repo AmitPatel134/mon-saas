@@ -31,8 +31,19 @@ const steps = [
     ),
     title: "Ajoutez vos prospects",
     description: "Renseignez les acheteurs potentiels avec leur budget et critères. L'IA fera le matching automatiquement avec vos mandats.",
-    cta: "C'est parti !",
+    cta: "Suivant",
     link: { href: "/app/prospects", label: "Ajouter un prospect maintenant →" },
+  },
+  {
+    icon: (
+      <svg className="w-8 h-8 text-fuchsia-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+    title: "Générez vos documents en 10 sec",
+    description: "Annonces SeLoger, Leboncoin, emails de relance, SMS, posts Instagram/LinkedIn, comptes-rendus de visite… Sélectionnez un mandat, choisissez le type de document et l'IA rédige à votre place.",
+    cta: "C'est parti !",
+    link: { href: "/app/generation", label: "Essayer la génération IA →" },
   },
 ]
 
