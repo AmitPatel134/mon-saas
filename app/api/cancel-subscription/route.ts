@@ -23,7 +23,9 @@ export async function POST(request: Request) {
     cancel_at_period_end: true,
   })
 
-  const expiresAt = new Date(sub.current_period_end * 1000)
+  const periodEnd = sub.items.data[0]?.current_period_end
+  if (!periodEnd) return Response.json({ error: "Impossible de récupérer la date de fin" }, { status: 500 })
+  const expiresAt = new Date(periodEnd * 1000)
 
   await prisma.user.updateMany({
     where: { email },
