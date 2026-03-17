@@ -101,11 +101,17 @@ export default function AppSidebar() {
 
       {/* Bottom */}
       <div className="px-3 py-4 border-t border-gray-100 flex flex-col gap-1">
-        <a href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all">
-          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <a href="/app/profil" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/app/profil" ? "bg-fuchsia-50 text-fuchsia-700" : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"}`}>
+          <svg className={`w-4 h-4 ${pathname === "/app/profil" ? "text-fuchsia-600" : "text-gray-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          Mon compte
+          Profil
+        </a>
+        <a href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all">
+          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          </svg>
+          Mon espace
         </a>
         {email && (
           <p className="px-3 text-xs text-gray-400 font-medium truncate">{email}</p>

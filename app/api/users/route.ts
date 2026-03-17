@@ -13,6 +13,13 @@ export async function GET(request: Request) {
   return Response.json(users)
 }
 
+export async function PATCH(request: Request) {
+  const { email, name } = await request.json()
+  if (!email || !name) return Response.json({ error: "email et name requis" }, { status: 400 })
+  const user = await prisma.user.update({ where: { email }, data: { name } })
+  return Response.json(user)
+}
+
 export async function POST(request: Request) {
   const body = await request.json()
   const user = await prisma.user.upsert({
