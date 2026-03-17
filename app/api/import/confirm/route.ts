@@ -37,7 +37,8 @@ export async function POST(request: Request) {
     })
   } else {
     // Prospects : parse criteria via a single batch Groq call
-    const prospectData = rows.map((r: Record<string, unknown>) => ({
+    type ProspectRow = { userId: string; nom: string; telephone: string | null; email: string | null; budget: number; criteres: string | null; statut: string }
+    const prospectData: ProspectRow[] = rows.map((r: Record<string, unknown>) => ({
       userId: user.id,
       nom: String(r.nom ?? ""),
       telephone: r.telephone ? String(r.telephone) : null,
@@ -48,8 +49,7 @@ export async function POST(request: Request) {
     }))
 
     // Parse all criteria in one Groq call
-    type ProspectRow = { userId: string; nom: string; telephone: string | null; email: string | null; budget: number; criteres: string | null; statut: string }
-    const withCriteres = prospectData.filter((p: ProspectRow) => p.criteres)
+    const withCriteres = prospectData.filter(p => p.criteres)
     let parsedMap: Record<number, object> = {}
     if (withCriteres.length > 0) {
       const items = withCriteres.map(p => ({ criteres: p.criteres!, budget: p.budget }))
