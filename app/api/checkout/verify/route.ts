@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Paiement non confirmé" }, { status: 400 })
   }
 
-  const email = session.customer_email
+  const email = session.customer_email ?? session.customer_details?.email
   if (!email) return Response.json({ error: "Email introuvable" }, { status: 400 })
 
   await prisma.user.upsert({
