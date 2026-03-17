@@ -1,18 +1,12 @@
-import nodemailer from "nodemailer"
+import { Resend } from "resend"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: Request) {
   const { name, email, subject, message } = await request.json()
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  })
-
-  await transporter.sendMail({
-    from: `"CleoAI Support" <${process.env.GMAIL_USER}>`,
+  await resend.emails.send({
+    from: "CleoAI Support <support@cleoai.fr>",
     to: "patelamit134@gmail.com",
     replyTo: email,
     subject: `[Support CleoAI] ${subject}`,
