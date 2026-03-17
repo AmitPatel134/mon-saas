@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Cléo — CRM IA pour agents immobiliers",
     description: "Rédigez annonces, emails, SMS et comptes rendus en quelques secondes. Matching mandats / prospects automatique.",
-    url: "https://tryCleo.fr",
+    url: "https://cleoai.fr",
     siteName: "Cléo",
     locale: "fr_FR",
     type: "website",

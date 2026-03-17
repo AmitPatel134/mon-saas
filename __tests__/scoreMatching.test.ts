@@ -17,7 +17,7 @@ const emptyParsed: CriteresParses = {
   dpeMax: null,
   neuf: null,
   plainPied: null,
-  investissement: null,
+  investissement: false,
   keywords: [],
 }
 

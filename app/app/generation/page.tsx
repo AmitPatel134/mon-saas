@@ -5,6 +5,7 @@ import { authFetch } from "@/lib/authFetch"
 import LoadingScreen from "@/components/LoadingScreen"
 import PlanBanner from "@/components/PlanBanner"
 import Toast from "@/components/Toast"
+import jsPDF from "jspdf"
 
 const PORTAILS_ANNONCE = ["SeLoger", "Leboncoin", "Logic-Immo", "PAP", "Bien'ici"]
 const RESEAUX_SOCIAL = ["Instagram", "LinkedIn", "Facebook"]
@@ -246,6 +247,27 @@ export default function GenerationPage() {
     navigator.clipboard.writeText(text)
     setCopied(id)
     setTimeout(() => setCopied(null), 2000)
+  }
+
+  function handleExportPDF() {
+    const doc = new jsPDF()
+    const margin = 20
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const maxWidth = pageWidth - margin * 2
+
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(16)
+    doc.setTextColor(162, 28, 175) // fuchsia
+    doc.text("Cléo — Document généré", margin, margin)
+
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(11)
+    doc.setTextColor(30, 30, 30)
+
+    const lines = doc.splitTextToSize(result, maxWidth)
+    doc.text(lines, margin, margin + 14)
+
+    doc.save(`cleo-${mode ?? "document"}-${new Date().toISOString().slice(0, 10)}.pdf`)
   }
 
   function handleSelectHisto(h: Generation) {
@@ -502,6 +524,11 @@ export default function GenerationPage() {
                         onClick={() => handleCopy(result, "current")}
                         className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${copied === "current" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                         {copied === "current" ? "Copié ✓" : "Copier"}
+                      </button>
+                      <button
+                        onClick={handleExportPDF}
+                        className="text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors">
+                        Télécharger PDF
                       </button>
                     </>
                   )}

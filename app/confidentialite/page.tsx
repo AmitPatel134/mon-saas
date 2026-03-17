@@ -60,7 +60,7 @@ export default function ConfidentialitePage() {
           <section>
             <h2 className="text-lg font-extrabold text-gray-900 mb-3">4. Partage des données</h2>
             <p className="text-sm font-medium leading-relaxed">
-              Nous ne vendons jamais vos données. Nous faisons appel à des sous-traitants de confiance : <strong>Supabase</strong> (hébergement et authentification), <strong>Stripe</strong> (paiement), <strong>Groq</strong> (génération IA). Chacun est soumis à des obligations strictes de confidentialité.
+              Nous ne vendons jamais vos données. Nous faisons appel à des sous-traitants de confiance : <strong>Supabase</strong> (hébergement et authentification), <strong>Stripe</strong> (paiement), <strong>Groq</strong> (génération IA), <strong>Resend</strong> (emails). Chacun est soumis à des obligations strictes de confidentialité.
             </p>
           </section>
 

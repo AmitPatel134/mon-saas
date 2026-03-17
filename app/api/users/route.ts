@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { getAuthUser } from "@/lib/authServer"
+import { sendWelcomeEmail } from "@/lib/email"
 
 export async function GET(request: Request) {
   const authUser = await getAuthUser(request)
@@ -22,10 +23,18 @@ export async function PATCH(request: Request) {
 
 export async function POST(request: Request) {
   const body = await request.json()
+  const existing = await prisma.user.findUnique({ where: { email: body.email } })
   const user = await prisma.user.upsert({
     where: { email: body.email },
     update: {},
     create: { email: body.email, name: body.name },
   })
+  if (!existing) {
+    try {
+      await sendWelcomeEmail({ to: body.email, name: body.name })
+    } catch {
+      // Ne pas bloquer si l'envoi de l'email échoue
+    }
+  }
   return Response.json(user)
 }

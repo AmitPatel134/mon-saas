@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
+vi.mock("@/lib/email", () => ({
+  sendRappelEmail: vi.fn().mockResolvedValue(undefined),
+  sendWelcomeEmail: vi.fn().mockResolvedValue(undefined),
+}))
+
 const mockGetUser = vi.fn()
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({ auth: { getUser: mockGetUser } }),
@@ -188,12 +193,12 @@ describe("POST /api/prospects", () => {
 
 // ── /api/rappels/notify ───────────────────────────────────────────────────────
 
-describe("POST /api/rappels/notify", () => {
+describe("GET /api/rappels/notify", () => {
   beforeEach(() => { vi.clearAllMocks() })
 
   it("retourne 401 sans secret", async () => {
-    const { POST } = await import("@/app/api/rappels/notify/route")
-    const res = await POST(new Request("http://localhost/api/rappels/notify", { method: "POST" }))
+    const { GET } = await import("@/app/api/rappels/notify/route")
+    const res = await GET(new Request("http://localhost/api/rappels/notify"))
     expect(res.status).toBe(401)
   })
 })

@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase"
 import { authFetch } from "@/lib/authFetch"
 import LoadingScreen from "@/components/LoadingScreen"
 import OnboardingModal from "@/components/OnboardingModal"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
 interface Mandat {
   id: string
@@ -36,6 +37,7 @@ interface DashboardData {
   dernieresGenerations: Generation[]
   rappels: Prospect[]
   stats: { mandatsDisponibles: number; prospectsChauds: number; generationsAujourdhui: number }
+  generationsChart: { date: string; count: number }[]
 }
 
 const statutMandat: Record<string, { label: string; classes: string }> = {
@@ -60,6 +62,7 @@ export default function AppPage() {
     dernieresGenerations: [],
     rappels: [],
     stats: { mandatsDisponibles: 0, prospectsChauds: 0, generationsAujourdhui: 0 },
+    generationsChart: [],
   })
   const [showOnboarding, setShowOnboarding] = useState(false)
 
@@ -90,7 +93,7 @@ export default function AppPage() {
 
   if (!ready) return <LoadingScreen />
 
-  const { mandats, prospects, dernieresGenerations, rappels, stats } = data
+  const { mandats, prospects, dernieresGenerations, rappels, stats, generationsChart } = data
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -269,6 +272,37 @@ export default function AppPage() {
           </a>
 
         </div>
+
+        {/* CHART GÉNÉRATIONS */}
+        <div className="mt-4 bg-white/5 border border-white/10 rounded-3xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Activité</p>
+              <p className="text-sm font-extrabold text-white">Générations — 7 derniers jours</p>
+            </div>
+            <div className="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+          </div>
+          {generationsChart.length === 0 || generationsChart.every(d => d.count === 0) ? (
+            <p className="text-xs text-gray-600 font-medium text-center py-10">Aucune génération cette semaine</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={generationsChart} barSize={28}>
+                <XAxis dataKey="date" tick={{ fill: "#6b7280", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                <YAxis hide allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{ background: "#1f2937", border: "none", borderRadius: "12px", fontSize: "12px", color: "#fff" }}
+                  cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                />
+                <Bar dataKey="count" name="Générations" fill="#7c3aed" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
       </div>
     </div>
   )

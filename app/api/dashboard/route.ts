@@ -33,11 +33,31 @@ export async function GET(request: Request) {
     prisma.prospect.findMany({ where: { userId: user.id, rappel: { not: null, lte: tomorrow } }, orderBy: { rappel: "asc" } }),
   ])
 
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  sevenDaysAgo.setHours(0, 0, 0, 0)
+
+  const generationsParJour = await prisma.generation.findMany({
+    where: { userId: user.id, createdAt: { gte: sevenDaysAgo } },
+    select: { createdAt: true },
+  })
+
+  const JOURS_COURTS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+  const generationsChart = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (6 - i))
+    d.setHours(0, 0, 0, 0)
+    const dateStr = d.toDateString()
+    const count = generationsParJour.filter(g => new Date(g.createdAt).toDateString() === dateStr).length
+    return { date: JOURS_COURTS[d.getDay()], count }
+  })
+
   return Response.json({
     mandats,
     prospects,
     dernieresGenerations,
     rappels,
     stats: { mandatsDisponibles, prospectsChauds, generationsAujourdhui },
+    generationsChart,
   })
 }

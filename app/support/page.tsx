@@ -34,36 +34,37 @@ export default function SupportPage() {
     <div className="min-h-screen bg-white text-gray-900">
 
       {/* NAVBAR */}
-      <nav className="flex items-center justify-between px-10 py-5 border-b border-gray-200 bg-white sticky top-0 z-50">
+      <nav className="flex items-center justify-between px-4 md:px-10 py-5 border-b border-gray-200 bg-white sticky top-0 z-50">
         <a href="/" className="font-extrabold text-lg tracking-tight text-gray-900">Cléo</a>
-        <a href="/dashboard" className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors">
+        <a href="/app" className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors">
           Mon compte
         </a>
       </nav>
 
       {/* HEADER */}
-      <div className="relative overflow-hidden bg-fuchsia-700 text-white px-10 pt-20 pb-20">
+      <div className="relative overflow-hidden bg-fuchsia-700 text-white px-4 md:px-10 pt-20 pb-20">
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-fuchsia-600/50" />
         <div className="absolute bottom-[-50px] left-[20%] w-48 h-48 rounded-full bg-fuchsia-800/40" />
         <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
         <div className="relative max-w-4xl mx-auto">
           <p className="text-xs font-bold text-fuchsia-200 uppercase tracking-widest mb-4">Support</p>
-          <h1 className="text-7xl font-extrabold leading-none mb-4">On est là<br />pour toi</h1>
+          <h1 className="text-4xl md:text-7xl font-extrabold leading-none mb-4">On est là<br />pour toi</h1>
           <p className="text-fuchsia-200 font-medium text-lg max-w-md">Une question, un bug, ou juste envie de discuter ? Écris-nous, on répond sous 24h.</p>
         </div>
       </div>
 
-      <div className="bg-gray-100 px-10 py-16">
-        <div className="max-w-4xl mx-auto grid grid-cols-3 gap-8">
+      <div className="bg-gray-100 px-4 md:px-10 py-16">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
 
           {/* INFOS CONTACT */}
           <div className="flex flex-col gap-6">
             <div>
               <p className="text-xs font-bold text-fuchsia-600 uppercase tracking-widest mb-4">Contact</p>
               {[
-                { label: "Email", value: "support@flowly.app" },
+                { label: "Email", value: "support@cleoai.fr" },
                 { label: "Réponse", value: "Sous 24h ouvrées" },
                 { label: "Disponibilité", value: "Lun – Ven, 9h – 18h" },
+                { label: "Temps de réponse habituel", value: "< 4h en semaine" },
               ].map(item => (
                 <div key={item.label} className="mb-4">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{item.label}</p>
@@ -77,7 +78,7 @@ export default function SupportPage() {
               <div className="flex flex-col gap-3">
                 {[
                   { q: "Mon paiement n'a pas fonctionné", href: "/pricing" },
-                  { q: "Comment annuler mon abonnement", href: "/dashboard" },
+                  { q: "Comment annuler mon abonnement", href: "/app" },
                   { q: "Voir les plans disponibles", href: "/pricing" },
                 ].map(link => (
                   <a key={link.q} href={link.href} className="text-sm font-medium text-fuchsia-600 hover:text-fuchsia-800 transition-colors">
@@ -148,6 +149,8 @@ export default function SupportPage() {
                     <option>Bug ou erreur technique</option>
                     <option>Question sur mon abonnement</option>
                     <option>Demande de fonctionnalité</option>
+                    <option>Question sur la génération IA</option>
+                    <option>Demande de fonctionnalité avancée</option>
                     <option>Autre</option>
                   </select>
                 </div>
@@ -182,8 +185,8 @@ export default function SupportPage() {
       <footer className="bg-gray-950 text-gray-500 px-10 py-8 flex items-center justify-between">
         <span className="text-white font-extrabold">Cléo</span>
         <div className="flex gap-8 text-sm font-semibold">
-          <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
-          <a href="#" className="hover:text-white transition-colors">Conditions</a>
+          <a href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</a>
+          <a href="/conditions" className="hover:text-white transition-colors">Conditions</a>
           <a href="/support" className="hover:text-white transition-colors">Contact</a>
         </div>
         <span className="text-xs font-medium">© 2026 Cléo</span>
