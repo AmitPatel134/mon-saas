@@ -8,9 +8,13 @@ export default function LoginPage() {
   const [view, setView] = useState<View>("login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [fading, setFading] = useState(false)
+  const firstNameRef = useRef<HTMLInputElement>(null)
+  const lastNameRef = useRef<HTMLInputElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
 
@@ -20,7 +24,11 @@ export default function LoginPage() {
       setView(next)
       setEmail("")
       setPassword("")
+      setFirstName("")
+      setLastName("")
       setMessage("")
+      if (firstNameRef.current) firstNameRef.current.value = ""
+      if (lastNameRef.current) lastNameRef.current.value = ""
       if (emailRef.current) emailRef.current.value = ""
       if (passwordRef.current) passwordRef.current.value = ""
       setFading(false)
@@ -30,12 +38,17 @@ export default function LoginPage() {
   async function handleAuth() {
     setLoading(true)
     if (view === "signup") {
+      if (!firstName.trim() || !lastName.trim()) {
+        setMessage("Prénom et nom requis.")
+        setLoading(false)
+        return
+      }
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) { setMessage(error.message); setLoading(false); return }
       await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name: email.split("@")[0] })
+        body: JSON.stringify({ email, name: `${firstName.trim()} ${lastName.trim()}` })
       })
       switchView("signup-sent")
       setLoading(false)
@@ -193,6 +206,26 @@ export default function LoginPage() {
                 className="flex flex-col gap-3 transition-all duration-200 ease-in-out"
                 style={{ opacity: fading ? 0 : 1, transform: fading ? 'translateY(6px)' : 'translateY(0)' }}
               >
+                {view === "signup" && (
+                  <div className="flex gap-2">
+                    <input
+                      ref={firstNameRef}
+                      type="text"
+                      placeholder="Prénom"
+                      onChange={e => setFirstName(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && lastNameRef.current?.focus()}
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
+                    />
+                    <input
+                      ref={lastNameRef}
+                      type="text"
+                      placeholder="Nom"
+                      onChange={e => setLastName(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && emailRef.current?.focus()}
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-fuchsia-400 focus:bg-white transition-colors"
+                    />
+                  </div>
+                )}
                 <input
                   ref={emailRef}
                   type="email"
