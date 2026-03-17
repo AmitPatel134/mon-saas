@@ -48,7 +48,8 @@ export async function POST(request: Request) {
     }))
 
     // Parse all criteria in one Groq call
-    const withCriteres = prospectData.filter(p => p.criteres)
+    type ProspectRow = { userId: string; nom: string; telephone: string | null; email: string | null; budget: number; criteres: string | null; statut: string }
+    const withCriteres = prospectData.filter((p: ProspectRow) => p.criteres)
     let parsedMap: Record<number, object> = {}
     if (withCriteres.length > 0) {
       const items = withCriteres.map(p => ({ criteres: p.criteres!, budget: p.budget }))
