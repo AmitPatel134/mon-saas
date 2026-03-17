@@ -1,10 +1,15 @@
 import Groq from "groq-sdk"
 import { prisma } from "@/lib/prisma"
 import { getLimit, isPro } from "@/lib/plans"
+import { createRateLimiter } from "@/lib/rate-limit"
+import { NextRequest } from "next/server"
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+const rateLimit = createRateLimiter({ maxRequests: 10, windowMs: 60_000 })
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const limited = rateLimit(request)
+  if (limited) return limited
   const { mandat, mode, portail, email, ton = "professionnel", longueur = "standard", instructions = "", visiteData, userName } = await request.json()
 
   if (email) {

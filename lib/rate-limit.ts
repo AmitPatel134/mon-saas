@@ -1,0 +1,32 @@
+import { LRUCache } from "lru-cache"
+import { NextRequest } from "next/server"
+
+type RateLimitOptions = {
+  maxRequests: number
+  windowMs: number
+}
+
+export function createRateLimiter({ maxRequests, windowMs }: RateLimitOptions) {
+  const cache = new LRUCache<string, number[]>({ max: 500 })
+
+  return function rateLimit(request: NextRequest): Response | null {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+      request.headers.get("x-real-ip") ??
+      "unknown"
+
+    const now = Date.now()
+    const windowStart = now - windowMs
+    const timestamps = (cache.get(ip) ?? []).filter(t => t > windowStart)
+
+    if (timestamps.length >= maxRequests) {
+      return Response.json(
+        { error: "Trop de requêtes. Réessaie dans quelques instants." },
+        { status: 429 }
+      )
+    }
+
+    cache.set(ip, [...timestamps, now])
+    return null
+  }
+}
