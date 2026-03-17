@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
     payment_method_types: ["card"],
     line_items: [{ price: body.priceId, quantity: 1 }],
     customer_email: body.email,
-    success_url: `${process.env.NEXT_PUBLIC_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_URL}/pricing`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/app?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
   })
 
   return Response.json({ url: session.url })

@@ -44,7 +44,7 @@ export default function PricingPage() {
       {/* NAVBAR */}
       <nav className="flex items-center justify-between px-10 py-5 border-b border-gray-200 bg-white sticky top-0 z-50">
         <a href="/" className="font-extrabold text-lg tracking-tight text-gray-900">CleoAI</a>
-        <a href={email ? "/dashboard" : "/login"} className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors">
+        <a href={email ? "/app" : "/login"} className="bg-fuchsia-600 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-fuchsia-700 transition-colors">
           {email ? "Mon compte" : "Connexion"}
         </a>
       </nav>
@@ -106,7 +106,7 @@ export default function PricingPage() {
               ))}
             </ul>
             {plan === "pro" ? (
-              <a href="/dashboard" className="relative z-10 text-center py-3 bg-white text-fuchsia-700 font-bold rounded-full text-sm hover:bg-fuchsia-50 transition-colors">
+              <a href="/app" className="relative z-10 text-center py-3 bg-white text-fuchsia-700 font-bold rounded-full text-sm hover:bg-fuchsia-50 transition-colors">
                 Mon compte
               </a>
             ) : (
