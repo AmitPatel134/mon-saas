@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma"
 import { getAuthUser } from "@/lib/authServer"
-import { sendWelcomeEmail } from "@/lib/email"
 
 export async function GET(request: Request) {
   const authUser = await getAuthUser(request)
@@ -34,12 +33,5 @@ export async function POST(request: Request) {
       agence: body.agence ?? null,
     },
   })
-  if (!existing) {
-    try {
-      await sendWelcomeEmail({ to: body.email, name: body.name })
-    } catch {
-      // Ne pas bloquer si l'envoi de l'email échoue
-    }
-  }
   return Response.json(user)
 }
