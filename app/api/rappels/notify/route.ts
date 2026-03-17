@@ -3,9 +3,9 @@ import { sendRappelEmail } from "@/lib/email"
 
 export const dynamic = "force-dynamic"
 
-// Called by a daily cron (e.g. Vercel Cron or external scheduler).
-// Requires Authorization: Bearer <CRON_SECRET>
-export async function POST(request: Request) {
+// Called daily by Vercel Cron at 07:00 UTC.
+// Vercel injects Authorization: Bearer <CRON_SECRET> automatically.
+export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET
   const auth = request.headers.get("authorization")
   if (!secret || auth !== `Bearer ${secret}`) {
