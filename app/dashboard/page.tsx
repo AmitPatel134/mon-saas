@@ -6,11 +6,10 @@ import LoadingScreen from "@/components/LoadingScreen"
 export default function DashboardPage() {
   const [email, setEmail] = useState<string | null>(null)
   const [plan, setPlan] = useState<string>("free")
-  const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
   const [ready, setReady] = useState(false)
-  const [confirm, setConfirm] = useState<"logout" | "downgrade" | null>(null)
+  const [confirm, setConfirm] = useState<"logout" | null>(null)
 
   useEffect(() => {
     async function getUser() {
@@ -35,7 +34,6 @@ export default function DashboardPage() {
       const data = await res.json()
       const user = Array.isArray(data) ? data[0] : data
       if (user?.plan) setPlan(user.plan)
-      if (user?.planExpiresAt) setPlanExpiresAt(user.planExpiresAt)
       setReady(true)
     }
     getUser()
@@ -72,20 +70,6 @@ export default function DashboardPage() {
     setBillingLoading(false)
     if (error) { alert(error); return }
     window.location.href = url
-  }
-
-  async function handleDowngrade() {
-    if (!email) return
-    setConfirm(null)
-    setLoading(true)
-    const res = await fetch("/api/cancel-subscription", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    })
-    const data = await res.json()
-    if (data.expiresAt) setPlanExpiresAt(data.expiresAt)
-    setLoading(false)
   }
 
   return (
@@ -173,90 +157,45 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div>
-                {planExpiresAt ? (
-                  <p className="text-sm text-fuchsia-100 font-medium mb-5">
-                    Abonnement annulé. Tu gardes l&apos;accès Pro jusqu&apos;au{" "}
-                    <span className="font-bold text-white">
-                      {new Date(planExpiresAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                    </span>.
-                  </p>
-                ) : (
-                  <p className="text-sm text-fuchsia-100 font-medium mb-5">
-                    Tu as accès à toutes les fonctionnalités. Merci de ta confiance !
-                  </p>
-                )}
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={handleBillingPortal}
-                    disabled={billingLoading}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    {billingLoading ? "Chargement..." : "Mes factures"}
-                  </button>
-                  {!planExpiresAt && (
-                    <button
-                      onClick={() => setConfirm("downgrade")}
-                      disabled={loading}
-                      className="text-sm text-fuchsia-200 hover:text-white font-semibold underline transition-colors disabled:opacity-50"
-                    >
-                      {loading ? "Chargement..." : "Annuler l'abonnement"}
-                    </button>
-                  )}
-                </div>
+                <p className="text-sm text-fuchsia-100 font-medium mb-5">
+                  Tu as accès à toutes les fonctionnalités. Merci de ta confiance !
+                </p>
+                <button
+                  onClick={handleBillingPortal}
+                  disabled={billingLoading}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-50"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {billingLoading ? "Chargement..." : "Consulter l'abonnement"}
+                </button>
               </div>
             )}
           </div>
         </div>
 
-
       </div>
 
       {/* MODAL CONFIRMATION */}
-      {confirm && (
+      {confirm === "logout" && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-xl">
-            {confirm === "logout" ? (
-              <>
-                <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-5">
-                  <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-extrabold text-gray-900 mb-2">Se déconnecter ?</h3>
-                <p className="text-sm text-gray-500 font-medium mb-6">Tu seras redirigé vers la page de connexion.</p>
-                <div className="flex gap-3">
-                  <button onClick={() => setConfirm(null)} className="flex-1 py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-gray-400 transition-colors">
-                    Annuler
-                  </button>
-                  <button onClick={handleLogout} className="flex-1 py-3 bg-gray-900 text-white font-bold rounded-xl text-sm hover:bg-gray-700 transition-colors">
-                    Se déconnecter
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center mb-5">
-                  <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-extrabold text-gray-900 mb-2">Annuler l&apos;abonnement Pro ?</h3>
-                <p className="text-sm text-gray-500 font-medium mb-6">
-                  Ton abonnement ne sera pas renouvelé. Tu gardes l&apos;accès Pro jusqu&apos;à la fin de ta période en cours, puis tu retourneras au plan Free.
-                </p>
-                <div className="flex gap-3">
-                  <button onClick={() => setConfirm(null)} className="flex-1 py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-gray-400 transition-colors">
-                    Garder le Pro
-                  </button>
-                  <button onClick={handleDowngrade} disabled={loading} className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-colors disabled:opacity-50">
-                    {loading ? "Chargement..." : "Confirmer l'annulation"}
-                  </button>
-                </div>
-              </>
-            )}
+            <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-5">
+              <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">Se déconnecter ?</h3>
+            <p className="text-sm text-gray-500 font-medium mb-6">Tu seras redirigé vers la page de connexion.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirm(null)} className="flex-1 py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-gray-400 transition-colors">
+                Annuler
+              </button>
+              <button onClick={handleLogout} className="flex-1 py-3 bg-gray-900 text-white font-bold rounded-xl text-sm hover:bg-gray-700 transition-colors">
+                Se déconnecter
+              </button>
+            </div>
           </div>
         </div>
       )}
