@@ -14,7 +14,7 @@ export default function AuthCallbackPage() {
             name: session.user.user_metadata?.full_name ?? session.user.email.split("@")[0],
           }),
         })
-        window.location.href = "/dashboard"
+        window.location.href = "/app"
       }
     })
     return () => subscription.unsubscribe()

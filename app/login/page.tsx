@@ -43,7 +43,11 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
-      const { error } = await supabase.auth.signUp({ email, password })
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      })
       if (error) { setMessage(error.message); setLoading(false); return }
       await fetch("/api/users", {
         method: "POST",
@@ -55,8 +59,8 @@ export default function LoginPage() {
       return
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) { setMessage(error.message); setLoading(false); return }
-      window.location.href = "/dashboard"
+      if (error) { setMessage("Email ou mot de passe incorrect."); setLoading(false); return }
+      window.location.href = "/app"
     }
     setLoading(false)
   }
@@ -261,7 +265,12 @@ export default function LoginPage() {
               )}
 
               {message && (
-                <p className="text-xs text-center mt-4 text-gray-600 font-medium">{message}</p>
+                <div className="mt-4 flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <p className="text-xs font-semibold text-red-700">{message}</p>
+                </div>
               )}
 
               <p
