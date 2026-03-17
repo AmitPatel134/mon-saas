@@ -36,14 +36,20 @@ export default function ImportPage() {
   function handleFile(file: File) {
     setFileName(file.name)
     const reader = new FileReader()
+    const isCsv = file.name.toLowerCase().endsWith(".csv")
+
     reader.onload = (e) => {
       const data = e.target?.result
-      const workbook = XLSX.read(data, { type: "array" })
+      const workbook = isCsv
+        ? XLSX.read(data, { type: "string" })
+        : XLSX.read(data, { type: "array" })
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
       const rows = XLSX.utils.sheet_to_json(sheet, { defval: null }) as Record<string, unknown>[]
       setRawRows(rows)
     }
-    reader.readAsArrayBuffer(file)
+
+    if (isCsv) reader.readAsText(file, "UTF-8")
+    else reader.readAsArrayBuffer(file)
   }
 
   function handleDrop(e: React.DragEvent) {
