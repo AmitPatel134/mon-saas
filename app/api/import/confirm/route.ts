@@ -1,8 +1,14 @@
 import { prisma } from "@/lib/prisma"
 import { parseBatchCriteres } from "@/lib/parseProspectCriteres"
 import { getAuthUser } from "@/lib/authServer"
+import { createRateLimiter } from "@/lib/rate-limit"
+
+const rateLimit = createRateLimiter({ maxRequests: 5, windowMs: 60_000 })
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request)
+  if (limited) return limited
+
   const authUser = await getAuthUser(request)
   if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
 

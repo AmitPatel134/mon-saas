@@ -2,8 +2,11 @@ import { prisma } from "@/lib/prisma"
 import { getLimit, isPro } from "@/lib/plans"
 import { parseProspectCriteres } from "@/lib/parseProspectCriteres"
 import { getAuthUser } from "@/lib/authServer"
+import { createRateLimiter } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
+
+const rateLimit = createRateLimiter({ maxRequests: 30, windowMs: 60_000 })
 
 export async function GET(request: Request) {
   const authUser = await getAuthUser(request)
@@ -20,6 +23,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request)
+  if (limited) return limited
+
   const authUser = await getAuthUser(request)
   if (!authUser) return Response.json({ error: "Non autorisé" }, { status: 401 })
 

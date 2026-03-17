@@ -1,5 +1,4 @@
 import { LRUCache } from "lru-cache"
-import { NextRequest } from "next/server"
 
 type RateLimitOptions = {
   maxRequests: number
@@ -9,7 +8,7 @@ type RateLimitOptions = {
 export function createRateLimiter({ maxRequests, windowMs }: RateLimitOptions) {
   const cache = new LRUCache<string, number[]>({ max: 500 })
 
-  return function rateLimit(request: NextRequest): Response | null {
+  return function rateLimit(request: Request): Response | null {
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
       request.headers.get("x-real-ip") ??
