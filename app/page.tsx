@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, type ReactElement } from "react"
+import { useEffect, useRef, useState, type ReactElement } from "react"
 import { supabase } from "@/lib/supabase"
 import LoadingScreen from "@/components/LoadingScreen"
 
@@ -75,6 +75,26 @@ export default function HomePage() {
   const [ready, setReady] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const testimonialRefs = useRef<(HTMLDivElement | null)[]>([null, null, null])
+  const [tScales, setTScales] = useState([1, 1, 1])
+
+  function handleTestimonialsMove(e: React.MouseEvent) {
+    const FALLOFF = 320
+    const proximities = testimonialRefs.current.map(el => {
+      if (!el) return 0
+      const rect = el.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
+      const dist = Math.sqrt((e.clientX - cx) ** 2 + (e.clientY - cy) ** 2)
+      return Math.max(0, 1 - dist / FALLOFF)
+    })
+    const maxP = Math.max(...proximities)
+    if (maxP < 0.02) { setTScales([1, 1, 1]); return }
+    setTScales(proximities.map(p => {
+      const norm = p / maxP
+      return 1 + maxP * (norm * 0.12 - (1 - norm) * 0.12)
+    }))
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -91,6 +111,32 @@ export default function HomePage() {
     })
   }, [])
 
+  useEffect(() => {
+    if (!ready) return
+    const els = Array.from(document.querySelectorAll<HTMLElement>(".fade-section"))
+    els.forEach(el => {
+      const rect = el.getBoundingClientRect()
+      if (rect.top > window.innerHeight * 0.7) {
+        el.style.opacity = "0"
+        el.style.transform = "translateY(32px)"
+      }
+    })
+    const update = () => {
+      els.forEach(el => {
+        const rect = el.getBoundingClientRect()
+        if (rect.top < window.innerHeight * 0.65 && rect.bottom > 0) {
+          el.style.opacity = "1"
+          el.style.transform = "translateY(0)"
+        } else if (rect.bottom < 0) {
+          el.style.opacity = "0"
+          el.style.transform = "translateY(-16px)"
+        }
+      })
+    }
+    window.addEventListener("scroll", update, { passive: true })
+    return () => window.removeEventListener("scroll", update)
+  }, [ready])
+
   async function handleLogout() {
     await supabase.auth.signOut()
     setEmail(null)
@@ -102,12 +148,12 @@ export default function HomePage() {
   const ctaHref = email ? "/app/profil" : "/login"
 
   return (
-    <main className="min-h-screen bg-white text-gray-900">
+    <main className="min-h-screen text-gray-900">
 
       {/* NAVBAR */}
-      <nav className="flex items-center justify-between px-4 md:px-10 py-3 border-b border-gray-200 bg-white sticky top-0 z-50">
+      <nav className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl flex items-center justify-between px-5 py-3 rounded-2xl bg-white/70 backdrop-blur-md border border-white/30 shadow-md">
         <a href={email ? "/app" : "/"} className="text-lg font-extrabold tracking-tight text-gray-900">CleoAI</a>
-        <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-500">
+        <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-500 absolute left-1/2 -translate-x-1/2">
           {email && (
             <a href="/app" className="bg-gray-950 text-white font-bold text-sm px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
@@ -135,11 +181,15 @@ export default function HomePage() {
       </nav>
 
       {/* HERO */}
-      <section className="relative overflow-hidden bg-fuchsia-700 text-white px-4 md:px-10 pt-12 pb-12">
+      <section className="relative overflow-hidden bg-fuchsia-700 text-white px-4 md:px-10 pt-32 pb-16 min-h-screen flex flex-col justify-center">
         <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-fuchsia-600/50" />
         <div className="absolute bottom-[-80px] left-[15%] w-72 h-72 rounded-full bg-fuchsia-800/50" />
         <div className="absolute top-20 left-[40%] w-32 h-32 rounded-full bg-fuchsia-500/30" />
         <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        {/* Skyline immobilière */}
+        <svg className="absolute bottom-0 left-0 right-0 w-full opacity-10 pointer-events-none" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" fill="white">
+          <path d="M0 120 L0 80 L40 80 L40 60 L60 60 L60 40 L80 40 L80 60 L100 60 L100 80 L140 80 L140 50 L160 50 L160 30 L180 30 L180 50 L200 50 L200 80 L240 80 L240 65 L255 55 L270 65 L270 80 L310 80 L310 45 L330 45 L330 25 L350 25 L350 45 L370 45 L370 80 L410 80 L410 70 L430 70 L430 50 L445 38 L460 50 L460 70 L480 70 L480 80 L520 80 L520 55 L540 55 L540 35 L560 35 L560 55 L580 55 L580 80 L620 80 L620 65 L635 65 L635 45 L650 45 L650 65 L665 65 L665 80 L700 80 L700 50 L720 50 L720 28 L740 28 L740 50 L760 50 L760 80 L800 80 L800 60 L815 48 L830 60 L830 80 L870 80 L870 45 L890 45 L890 65 L910 65 L910 80 L950 80 L950 55 L970 55 L970 35 L990 35 L990 55 L1010 55 L1010 80 L1050 80 L1050 68 L1065 68 L1065 50 L1080 38 L1095 50 L1095 68 L1110 68 L1110 80 L1150 80 L1150 45 L1170 45 L1170 28 L1190 28 L1190 45 L1210 45 L1210 80 L1250 80 L1250 60 L1270 60 L1270 40 L1290 40 L1290 60 L1310 60 L1310 80 L1350 80 L1350 65 L1370 65 L1370 80 L1440 80 L1440 120 Z" />
+        </svg>
 
         <div className="relative max-w-5xl mx-auto">
           <p className="text-xs font-bold text-fuchsia-200 uppercase tracking-widest mb-4">CRM IA pour agents immobiliers</p>
@@ -181,7 +231,7 @@ export default function HomePage() {
 
       {/* PRODUCT PREVIEW — Dashboard */}
       <section className="bg-gray-950 px-4 md:px-10 py-20">
-        <div className="max-w-5xl mx-auto">
+        <div className="fade-section max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-xs text-fuchsia-400 font-bold uppercase tracking-widest mb-3">Aperçu du produit</p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">
@@ -204,8 +254,8 @@ export default function HomePage() {
       </section>
 
       {/* COMMENT ÇA MARCHE */}
-      <section className="bg-white px-4 md:px-10 py-24">
-        <div className="max-w-5xl mx-auto">
+      <section className="house-bg bg-white px-4 md:px-10 py-24">
+        <div className="fade-section max-w-5xl mx-auto">
           <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-4">Comment ça marche</p>
           <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-16 max-w-lg">
             Prêt en 3 étapes simples
@@ -244,7 +294,7 @@ export default function HomePage() {
 
       {/* GÉNÉRATION IA — section principale */}
       <section id="generation" className="bg-gray-950 px-4 md:px-10 py-24">
-        <div className="max-w-5xl mx-auto">
+        <div className="fade-section max-w-5xl mx-auto">
           <p className="text-xs text-fuchsia-400 font-bold uppercase tracking-widest mb-4">Génération IA</p>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4">
             <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight max-w-lg">
@@ -330,51 +380,56 @@ export default function HomePage() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="bg-gray-100 px-4 md:px-10 py-12">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-3">Fonctionnalités</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold leading-tight mb-10 text-gray-900 max-w-lg">
-            Tout ce dont un agent a besoin
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <section id="features" className="house-bg bg-gray-100 px-4 md:px-10 py-16 overflow-hidden">
+        <div className="fade-section">
+
+          {/* Mobile: grid */}
+          <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
             {[
-              {
-                num: "01",
-                title: "Fiches mandats enrichies",
-                desc: "Adresse, surface, pièces, prix, DPE, exposition, chauffage, statut… Tous vos mandats centralisés, accessibles en un coup d'œil.",
-              },
-              {
-                num: "02",
-                title: "Génération IA multiformat",
-                desc: "6 types de documents générés à partir de vos données : annonces, emails, SMS, posts réseaux, comptes-rendus, emails vendeur.",
-              },
-              {
-                num: "03",
-                title: "CRM prospects intégré",
-                desc: "Suivez chaque contact, ses critères, son budget, ses biens visités, son statut et programmez des rappels.",
-              },
-              {
-                num: "04",
-                title: "Historique des générations",
-                desc: "Retrouvez, filtrez et réutilisez toutes vos générations passées. Copiez en un clic, supprimez ce dont vous n'avez plus besoin.",
-              },
-              {
-                num: "05",
-                title: "5 portails, 3 réseaux",
-                desc: "SeLoger, Leboncoin, Logic-Immo, PAP, Bien'ici — chacun avec ses règles de rédaction. Instagram, LinkedIn et Facebook pour les réseaux.",
-              },
-              {
-                num: "06",
-                title: "Restriction par plan",
-                desc: "Le plan Free vous donne accès à 3 mandats, 5 prospects et 5 générations par mois. Le plan Pro lève toutes les limites.",
-              },
+              { num: "01", title: "Fiches mandats enrichies", desc: "Adresse, surface, pièces, prix, DPE, exposition, chauffage, statut…" },
+              { num: "02", title: "Génération IA multiformat", desc: "6 types de documents générés à partir de vos données." },
+              { num: "03", title: "CRM prospects intégré", desc: "Suivez chaque contact, ses critères, son budget, son statut." },
+              { num: "04", title: "Historique des générations", desc: "Retrouvez, filtrez et réutilisez toutes vos générations passées." },
+              { num: "05", title: "5 portails, 3 réseaux", desc: "SeLoger, Leboncoin, Logic-Immo, PAP, Bien'ici + Instagram, LinkedIn, Facebook." },
+              { num: "06", title: "Plans Free & Pro", desc: "Commencez gratuitement. Le plan Pro lève toutes les limites." },
             ].map(f => (
-              <div key={f.num} className="p-6 rounded-2xl bg-white border border-gray-200 hover:border-fuchsia-300 hover:shadow-sm transition-all group">
-                <div className="mb-4 group-hover:scale-110 transition-transform inline-block">
-                  {FeatureIcons[f.num]}
-                </div>
-                <p className="text-base font-bold text-gray-900 mb-2">{f.title}</p>
-                <p className="text-sm text-gray-500 font-medium leading-relaxed">{f.desc}</p>
+              <div key={f.num} className="p-5 rounded-2xl bg-white border border-gray-200">
+                <div className="mb-3">{FeatureIcons[f.num]}</div>
+                <p className="text-sm font-bold text-gray-900 mb-1">{f.title}</p>
+                <p className="text-xs text-gray-500 font-medium leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: ellipse layout — rx=340px, ry=210px */}
+          <div className="hidden md:block relative h-[580px]">
+            {/* Ring décoratif elliptique */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ width: 700, height: 430, borderRadius: "50%", border: "1px solid rgba(232,121,249,0.35)" }} />
+
+            {/* Titre au centre */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none px-4">
+              <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-2">Fonctionnalités</p>
+              <h2 className="text-2xl font-extrabold text-gray-900 leading-tight">Tout ce dont<br />un agent a besoin</h2>
+            </div>
+
+            {/* 6 cards — ellipse rx=340 ry=210 */}
+            {[
+              { num: "02", title: "Génération IA multiformat", desc: "6 types de documents générés en 1 clic à partir de vos mandats.", style: { left: "50%", top: "calc(50% - 210px)", width: 176 } },
+              { num: "03", title: "CRM prospects intégré", desc: "Critères, budget, biens visités, statut et rappels.", style: { left: "calc(50% + 294px)", top: "calc(50% - 105px)", width: 220 } },
+              { num: "05", title: "5 portails · 3 réseaux", desc: "SeLoger, LBC, Logic-Immo, PAP, Bien'ici + Instagram, LinkedIn, Facebook.", style: { left: "calc(50% + 294px)", top: "calc(50% + 105px)", width: 220 } },
+              { num: "06", title: "Plans Free & Pro", desc: "Commencez gratuitement. Le Pro lève toutes les limites.", style: { left: "50%", top: "calc(50% + 210px)", width: 176 } },
+              { num: "04", title: "Historique des générations", desc: "Retrouvez, filtrez et réutilisez toutes vos générations passées.", style: { left: "calc(50% - 294px)", top: "calc(50% + 105px)", width: 220 } },
+              { num: "01", title: "Fiches mandats enrichies", desc: "Adresse, surface, pièces, prix, DPE, exposition, chauffage, statut…", style: { left: "calc(50% - 294px)", top: "calc(50% - 105px)", width: 220 } },
+            ].map(f => (
+              <div
+                key={f.num}
+                className="absolute -translate-x-1/2 -translate-y-1/2 p-4 rounded-2xl bg-white border border-gray-200 hover:border-fuchsia-300 hover:shadow-md transition-all group cursor-default"
+                style={f.style}
+              >
+                <div className="mb-2 group-hover:scale-110 transition-transform inline-block">{FeatureIcons[f.num]}</div>
+                <p className="text-sm font-bold text-gray-900 mb-1 leading-snug">{f.title}</p>
+                <p className="text-xs text-gray-400 font-medium leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -383,7 +438,7 @@ export default function HomePage() {
 
       {/* MATCHING */}
       <section className="bg-white px-4 md:px-10 py-24 border-t border-gray-100 overflow-hidden">
-        <div className="max-w-5xl mx-auto">
+        <div className="fade-section max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] items-center gap-0">
             <div className="relative z-10 bg-white md:-mr-14 py-6 md:py-6 md:pl-6 md:before:absolute md:before:left-0 md:before:top-3 md:before:bottom-3 md:before:w-1 md:before:bg-fuchsia-500 md:before:rounded-full">
               <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-4">Matching IA</p>
@@ -430,7 +485,11 @@ export default function HomePage() {
         <div className="relative max-w-5xl mx-auto">
           <p className="text-xs text-fuchsia-400 font-bold uppercase tracking-widest mb-4">Témoignages</p>
           <h2 className="text-3xl md:text-5xl font-extrabold mb-16">Ce qu'ils en disent</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-center"
+            onMouseMove={handleTestimonialsMove}
+            onMouseLeave={() => setTScales([1, 1, 1])}
+          >
             {[
               {
                 quote: "Je génère mes annonces SeLoger en 15 secondes au lieu de 20 minutes. Et elles sont meilleures que ce que j'écrivais moi-même.",
@@ -447,10 +506,15 @@ export default function HomePage() {
                 name: "Thomas R.",
                 role: "Agent indépendant, Bordeaux",
               },
-            ].map(t => (
-              <div key={t.name} className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-fuchsia-800/60 transition-colors">
+            ].map((t, i) => (
+              <div
+                key={t.name}
+                ref={el => { testimonialRefs.current[i] = el }}
+                style={{ transform: `scale(${tScales[i]})`, transition: "transform 0.12s ease" }}
+                className="p-6 rounded-2xl bg-white/5 border border-white/10"
+              >
                 <div className="flex gap-0.5 mb-4">
-                  {Array.from({ length: 5 }).map((_, i) => <StarIcon key={i} />)}
+                  {Array.from({ length: 5 }).map((_, j) => <StarIcon key={j} />)}
                 </div>
                 <p className="text-sm text-gray-300 font-medium leading-relaxed mb-6">&ldquo;{t.quote}&rdquo;</p>
                 <div>
@@ -464,8 +528,8 @@ export default function HomePage() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing" className="bg-gray-100 px-4 md:px-10 py-24">
-        <div className="max-w-3xl mx-auto">
+      <section id="pricing" className="house-bg bg-gray-100 px-4 md:px-10 py-24">
+        <div className="fade-section max-w-3xl mx-auto">
           <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-4">Tarifs</p>
           <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-16">Simple et transparent</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -538,8 +602,8 @@ export default function HomePage() {
       </section>
 
       {/* FAQ */}
-      <section className="bg-gray-100 px-4 md:px-10 py-24 border-t border-gray-200">
-        <div className="max-w-3xl mx-auto">
+      <section className="house-bg bg-gray-100 px-4 md:px-10 py-24 border-t border-gray-200">
+        <div className="fade-section max-w-3xl mx-auto">
           <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-4">FAQ</p>
           <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-16">Questions fréquentes</h2>
           <div className="flex flex-col gap-3">
