@@ -32,7 +32,7 @@ export default function PricingPage() {
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ priceId: "price_1TBGrbIRxjgeiG9Aa938HZFt", email })
+      body: JSON.stringify({ priceId: "price_1TBcDDEaP88UmkNl9zxCel0M", email })
     })
     const { url } = await res.json()
     window.location.href = url
