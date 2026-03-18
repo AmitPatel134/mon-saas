@@ -382,10 +382,10 @@ export default function HomePage() {
       </section>
 
       {/* MATCHING */}
-      <section className="bg-white px-4 md:px-10 py-24 border-t border-gray-100">
+      <section className="bg-white px-4 md:px-10 py-24 border-t border-gray-100 overflow-hidden">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] items-center gap-0">
+            <div className="relative z-10 bg-white md:-mr-14 py-6 md:py-6 md:pl-6 md:before:absolute md:before:left-0 md:before:top-3 md:before:bottom-3 md:before:w-1 md:before:bg-fuchsia-500 md:before:rounded-full">
               <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-4">Matching IA</p>
               <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-5">
                 Le bon prospect<br />pour chaque mandat
