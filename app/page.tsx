@@ -179,6 +179,30 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* PRODUCT PREVIEW — Dashboard */}
+      <section className="bg-gray-950 px-4 md:px-10 py-20">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-xs text-fuchsia-400 font-bold uppercase tracking-widest mb-3">Aperçu du produit</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">
+              Un seul outil pour tout gérer
+            </h2>
+            <p className="text-gray-400 font-medium text-sm mt-3 max-w-md mx-auto">Mandats, prospects, générations IA et statistiques — centralisés dans un tableau de bord épuré.</p>
+          </div>
+          <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <div className="flex items-center gap-1.5 px-4 py-3 bg-[#1a1a1a] border-b border-white/10">
+              <span className="w-3 h-3 rounded-full bg-red-500/70" />
+              <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
+              <span className="w-3 h-3 rounded-full bg-green-500/70" />
+              <div className="flex-1 mx-4 bg-white/10 rounded-md h-5 flex items-center px-3">
+                <span className="text-xs text-gray-400 font-mono">cleoai.fr/app</span>
+              </div>
+            </div>
+            <img src="/screenshots/dashboard_page.png?v=2" alt="Tableau de bord CleoAI" className="w-full block" />
+          </div>
+        </div>
+      </section>
+
       {/* COMMENT ÇA MARCHE */}
       <section className="bg-white px-4 md:px-10 py-24">
         <div className="max-w-5xl mx-auto">
@@ -274,7 +298,7 @@ export default function HomePage() {
           </div>
 
           {/* Options de style */}
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 mb-10">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Options de personnalisation disponibles</p>
             <div className="flex flex-wrap gap-6">
               {[
@@ -288,6 +312,19 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Screenshot génération IA */}
+          <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <div className="flex items-center gap-1.5 px-4 py-3 bg-[#1a1a1a] border-b border-white/10">
+              <span className="w-3 h-3 rounded-full bg-red-500/70" />
+              <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
+              <span className="w-3 h-3 rounded-full bg-green-500/70" />
+              <div className="flex-1 mx-4 bg-white/10 rounded-md h-5 flex items-center px-3">
+                <span className="text-xs text-gray-400 font-mono">cleoai.fr/app/generation</span>
+              </div>
+            </div>
+            <img src="/screenshots/generationia_page.png?v=2" alt="Génération IA CleoAI" className="w-full block" />
           </div>
         </div>
       </section>
@@ -340,6 +377,46 @@ export default function HomePage() {
                 <p className="text-sm text-gray-500 font-medium leading-relaxed">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MATCHING */}
+      <section className="bg-white px-4 md:px-10 py-24 border-t border-gray-100">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
+            <div>
+              <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-4">Matching IA</p>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-5">
+                Le bon prospect<br />pour chaque mandat
+              </h2>
+              <p className="text-gray-500 font-medium text-sm leading-relaxed mb-8">
+                CleoAI analyse vos mandats et vos prospects pour suggérer automatiquement les meilleures correspondances. Score de compatibilité, critères, budget — tout est comparé en un instant.
+              </p>
+              <ul className="flex flex-col gap-3">
+                {[
+                  "Score de compatibilité automatique",
+                  "Comparaison budget / prix de vente",
+                  "Critères : surface, pièces, localisation",
+                  "Accès direct à la fiche prospect",
+                ].map(f => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 shrink-0" />{f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl overflow-hidden shadow-xl ring-1 ring-gray-200">
+              <div className="flex items-center gap-1.5 px-4 py-3 bg-gray-100 border-b border-gray-200">
+                <span className="w-3 h-3 rounded-full bg-red-400/80" />
+                <span className="w-3 h-3 rounded-full bg-yellow-400/80" />
+                <span className="w-3 h-3 rounded-full bg-green-400/80" />
+                <div className="flex-1 mx-4 bg-gray-200 rounded-md h-5 flex items-center px-3">
+                  <span className="text-xs text-gray-500 font-mono">cleoai.fr/app/matching</span>
+                </div>
+              </div>
+              <img src="/screenshots/Matching_page.png?v=2" alt="Matching CleoAI" className="w-full block" />
+            </div>
           </div>
         </div>
       </section>
