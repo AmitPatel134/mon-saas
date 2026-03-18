@@ -105,7 +105,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-white text-gray-900">
 
       {/* NAVBAR */}
-      <nav className="flex items-center justify-between px-4 md:px-10 py-5 border-b border-gray-200 bg-white sticky top-0 z-50">
+      <nav className="flex items-center justify-between px-4 md:px-10 py-3 border-b border-gray-200 bg-white sticky top-0 z-50">
         <a href={email ? "/app" : "/"} className="text-lg font-extrabold tracking-tight text-gray-900">CleoAI</a>
         <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-500">
           {email && (
@@ -135,27 +135,27 @@ export default function HomePage() {
       </nav>
 
       {/* HERO */}
-      <section className="relative overflow-hidden bg-fuchsia-700 text-white px-4 md:px-10 pt-20 pb-28">
+      <section className="relative overflow-hidden bg-fuchsia-700 text-white px-4 md:px-10 pt-12 pb-12">
         <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-fuchsia-600/50" />
         <div className="absolute bottom-[-80px] left-[15%] w-72 h-72 rounded-full bg-fuchsia-800/50" />
         <div className="absolute top-20 left-[40%] w-32 h-32 rounded-full bg-fuchsia-500/30" />
         <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
 
         <div className="relative max-w-5xl mx-auto">
-          <p className="text-xs font-bold text-fuchsia-200 uppercase tracking-widest mb-6">CRM IA pour agents immobiliers</p>
-          <h1 className="text-[clamp(2.5rem,7vw,6.5rem)] font-extrabold leading-none tracking-tight mb-8">
+          <p className="text-xs font-bold text-fuchsia-200 uppercase tracking-widest mb-4">CRM IA pour agents immobiliers</p>
+          <h1 className="text-[clamp(2.5rem,6vw,5rem)] font-extrabold leading-none tracking-tight mb-6">
             Rédigez.<br />Prospectez.<br />
             <span className="text-fuchsia-200">Vendez plus vite.</span>
           </h1>
-          <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
-            <p className="text-xl font-medium text-fuchsia-100 max-w-md leading-relaxed">
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <p className="text-base font-medium text-fuchsia-100 max-w-md leading-relaxed">
               CleoAI génère vos annonces, emails, SMS et comptes-rendus en quelques secondes. Gérez mandats et prospects depuis un seul outil.
             </p>
             <div className="flex flex-col gap-3 md:items-end shrink-0">
-              <a href={ctaHref} className="bg-white text-fuchsia-700 font-bold text-sm px-8 py-4 rounded-full hover:bg-fuchsia-50 transition-colors text-center">
+              <a href={ctaHref} className="bg-white text-fuchsia-700 font-bold text-sm px-8 py-3.5 rounded-full hover:bg-fuchsia-50 transition-colors text-center">
                 {email ? "Accéder à l'outil →" : "Commencer gratuitement →"}
               </a>
-              <a href="#generation" className="border border-white/30 text-white font-semibold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition-colors text-center">
+              <a href="#generation" className="border border-white/30 text-white font-semibold text-sm px-8 py-3.5 rounded-full hover:bg-white/10 transition-colors text-center">
                 Voir la génération IA
               </a>
               {!email && <p className="text-fuchsia-200 text-xs font-medium text-center md:text-right">Sans carte bancaire · Gratuit pour toujours</p>}
@@ -163,7 +163,7 @@ export default function HomePage() {
           </div>
 
           {/* STATS */}
-          <div className="grid grid-cols-2 gap-6 md:flex md:gap-12 mt-20 pt-8 border-t border-white/20">
+          <div className="grid grid-cols-2 gap-6 md:flex md:gap-12 mt-10 pt-8 border-t border-white/20">
             {[
               { value: "6", label: "types de documents générés" },
               { value: "5 portails", label: "SeLoger, LBC, Logic-Immo, PAP, Bien'ici" },
@@ -330,10 +330,10 @@ export default function HomePage() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="bg-gray-100 px-4 md:px-10 py-24">
+      <section id="features" className="bg-gray-100 px-4 md:px-10 py-12">
         <div className="max-w-5xl mx-auto">
-          <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-4">Fonctionnalités</p>
-          <h2 className="text-3xl md:text-5xl font-extrabold leading-tight mb-16 text-gray-900 max-w-lg">
+          <p className="text-xs text-fuchsia-600 font-bold uppercase tracking-widest mb-3">Fonctionnalités</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold leading-tight mb-10 text-gray-900 max-w-lg">
             Tout ce dont un agent a besoin
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
